@@ -1,0 +1,13 @@
+/home/wenyu/apps/linux-batman/src/module/gb905/report/gb905_report.o: \
+ gb905_report.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/misc/endian.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/gb905_common.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/report/gb905_report.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/gps.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/status.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/socket/fleety_socket.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/module/gb905/report/gb905_trace.o: \
+ gb905_trace.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h

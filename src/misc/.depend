@@ -1,0 +1,11 @@
+/home/wenyu/apps/linux-batman/src/misc/bcd.o: bcd.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/misc/check.o: check.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h
+/home/wenyu/apps/linux-batman/src/misc/endian.o: endian.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

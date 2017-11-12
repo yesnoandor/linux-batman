@@ -1,0 +1,8 @@
+/home/wenyu/apps/linux-batman/src/module/itop/itop_common.o: \
+ itop_common.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/socket/authorize_socket.h \
+ /home/wenyu/apps/linux-batman/inc/module/info/device_info.h \
+ /home/wenyu/apps/linux-batman/inc/module/itop/authorize/itop_authorize.h \
+ /home/wenyu/apps/linux-batman/inc/module/itop/itop_common.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

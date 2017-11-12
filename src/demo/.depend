@@ -1,0 +1,48 @@
+/home/wenyu/apps/linux-batman/src/demo/demo_fleety_event.o: \
+ demo_fleety_event.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/module/itop/authorize/itop_authorize.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/socket/fleety_socket.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/event/fleety_event.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/demo/demo_gb905_heartbeat.o: \
+ demo_gb905_heartbeat.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/module/itop/authorize/itop_authorize.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/socket/fleety_socket.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/demo/demo_gb905_report.o: \
+ demo_gb905_report.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/module/itop/authorize/itop_authorize.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/socket/fleety_socket.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/event/fleety_event.h \
+ /home/wenyu/apps/linux-batman/inc/main/fleety_report.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/demo/demo_libevent_client.o: \
+ demo_libevent_client.c /home/wenyu/apps/linux-batman/inc/event2/event.h \
+ /home/wenyu/apps/linux-batman/inc/event2/visibility.h \
+ /home/wenyu/apps/linux-batman/inc/event2/event-config.h \
+ /home/wenyu/apps/linux-batman/inc/event2/util.h \
+ /home/wenyu/apps/linux-batman/inc/event2/bufferevent.h \
+ /home/wenyu/apps/linux-batman/inc/event2/buffer.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/demo/demo_libevent_server.o: \
+ demo_libevent_server.c /home/wenyu/apps/linux-batman/inc/event2/event.h \
+ /home/wenyu/apps/linux-batman/inc/event2/visibility.h \
+ /home/wenyu/apps/linux-batman/inc/event2/event-config.h \
+ /home/wenyu/apps/linux-batman/inc/event2/util.h \
+ /home/wenyu/apps/linux-batman/inc/event2/listener.h \
+ /home/wenyu/apps/linux-batman/inc/event2/bufferevent.h \
+ /home/wenyu/apps/linux-batman/inc/event2/thread.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/demo/demo_libevent_uart.o: \
+ demo_libevent_uart.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/uart/fleety_uart.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/demo/demo_socket_authorize.o: \
+ demo_socket_authorize.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/module/itop/authorize/itop_authorize.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

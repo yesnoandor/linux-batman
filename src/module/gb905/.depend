@@ -1,0 +1,10 @@
+/home/wenyu/apps/linux-batman/src/module/gb905/gb905_common.o: \
+ gb905_common.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/misc/bcd.h \
+ /home/wenyu/apps/linux-batman/inc/misc/check.h \
+ /home/wenyu/apps/linux-batman/inc/misc/endian.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/socket/fleety_socket.h \
+ /home/wenyu/apps/linux-batman/inc/module/info/device_info.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/gb905_common.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

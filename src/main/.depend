@@ -1,0 +1,22 @@
+/home/wenyu/apps/linux-batman/src/main/fleety_report.o: fleety_report.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/gps.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/gb905_common.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/report/gb905_report.h \
+ /home/wenyu/apps/linux-batman/inc/main/fleety_report.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/main/main.o: main.c \
+ /home/wenyu/apps/linux-batman/inc/event2/event.h \
+ /home/wenyu/apps/linux-batman/inc/event2/visibility.h \
+ /home/wenyu/apps/linux-batman/inc/event2/event-config.h \
+ /home/wenyu/apps/linux-batman/inc/event2/util.h \
+ /home/wenyu/apps/linux-batman/inc/event2/bufferevent.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h \
+ /home/wenyu/apps/linux-batman/inc/demo/demo_libevent_client.h \
+ /home/wenyu/apps/linux-batman/inc/demo/demo_libevent_server.h \
+ /home/wenyu/apps/linux-batman/inc/demo/demo_libevent_uart.h \
+ /home/wenyu/apps/linux-batman/inc/demo/demo_socket_authorize.h \
+ /home/wenyu/apps/linux-batman/inc/demo/demo_gb905_heartbeat.h \
+ /home/wenyu/apps/linux-batman/inc/demo/demo_gb905_report.h \
+ /home/wenyu/apps/linux-batman/inc/demo/demo_fleety_event.h

@@ -1,0 +1,17 @@
+/home/wenyu/apps/linux-batman/src/module/info/device_info.o: \
+ device_info.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/misc/check.h \
+ /home/wenyu/apps/linux-batman/inc/module/info/info2file.h \
+ /home/wenyu/apps/linux-batman/inc/module/info/device_info.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/module/info/info2file.o: info2file.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/module/info/info2file.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/module/info/path_info.o: path_info.c
+/home/wenyu/apps/linux-batman/src/module/info/setting_info.o: \
+ setting_info.c
+/home/wenyu/apps/linux-batman/src/module/info/status_info.o: \
+ status_info.c

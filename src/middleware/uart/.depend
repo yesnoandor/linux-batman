@@ -1,0 +1,10 @@
+/home/wenyu/apps/linux-batman/src/middleware/uart/fleety_uart.o: \
+ fleety_uart.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/event2/event.h \
+ /home/wenyu/apps/linux-batman/inc/event2/visibility.h \
+ /home/wenyu/apps/linux-batman/inc/event2/event-config.h \
+ /home/wenyu/apps/linux-batman/inc/event2/util.h \
+ /home/wenyu/apps/linux-batman/inc/event2/bufferevent.h \
+ /home/wenyu/apps/linux-batman/inc/event2/buffer.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

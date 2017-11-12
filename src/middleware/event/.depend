@@ -1,0 +1,7 @@
+/home/wenyu/apps/linux-batman/src/middleware/event/fleety_event.o: \
+ fleety_event.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/socket/fleety_socket.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/event/fleety_event.h \
+ /home/wenyu/apps/linux-batman/inc/libs/fifo.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
