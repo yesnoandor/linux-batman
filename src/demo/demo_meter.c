@@ -1,10 +1,10 @@
 /****************************************Copyright (c)**************************************************                         
-** File name:			hi3520d.h
+** File name:			demo_meter.c
 ** Descriptions:		 
 **
 **------------------------------------------------------------------------------------------------------
 ** Created by:		wenyu_xu
-** Created date:		2017-11-07
+** Created date:		2017-11-18
 ** Version:			1.0
 ** Descriptions:		The original version
 **
@@ -14,23 +14,37 @@
 ** Version:
 ** Descriptions:		
 ********************************************************************************************************/
-#ifndef _HI3520D_H
-#define	_HI3520D_H
+#include	"common.h"
 
+#include	"module/gb905/gb905_common.h"
+#include	"module/gb905/report/gb905_report.h"
+#include	"module/gb905_peri/gb905_peri_common.h"
+#include	"module/gb905_peri/meter/gb905_meter.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include	"middleware/uart/fleety_uart.h"
+#include	"middleware/event/fleety_event.h"
 
-#define 	__packed 				__attribute__((packed))
+#define		DEBUG_Y
+#include	"libs/debug.h"
 
-#define		meter_uart_device		"/dev/ttyS0"
-#define		toplight_uart_device	"/dev/ttyS1"
+int demo_meter(void)	
+{
+	DbgFuncEntry();
+	
+	fleety_event_init();
+	fleety_uart_init();
+	
+	sleep(5);
+		
+	do{
+		//gb905_meter_query_state();
+	
+		sleep(60);
+	}while(1);
+		
+	DbgFuncExit();
 
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+	return 0;
+}  
+	  
 

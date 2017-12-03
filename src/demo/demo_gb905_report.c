@@ -18,9 +18,9 @@
 	
 #include	"module/itop/authorize/itop_authorize.h"
 	
-#include	"middleware/socket/fleety_socket.h"
+#include	"middleware/uart/fleety_uart.h"
 #include	"middleware/event/fleety_event.h"
-
+#include	"middleware/socket/fleety_socket.h"
 
 #include	"main/fleety_report.h"
 
@@ -35,6 +35,7 @@ int demo_gb905_report(void)
 
 	fleety_event_init();
 	fleety_socket_init();
+	fleety_uart_init();
 
 	fleety_report_init();
 	

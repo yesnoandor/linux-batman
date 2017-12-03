@@ -21,6 +21,10 @@
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/report/gb905_report.h"
 
+#include	"middleware/info/status.h"
+#include	"middleware/info/setting.h"
+
+
 #include	"main/fleety_report.h"
 
 #define		DEBUG_Y
@@ -138,10 +142,11 @@ static unsigned int report_get_period(void)
 	}
 
 	DbgFuncExit();
-#else
-	unsigned int timeout = 30;
-#endif
+
 	return timeout;
+#endif
+
+	return 30;
 }
 
 /*
@@ -256,9 +261,10 @@ static unsigned int report_get_distance(void)
 }
 
 /*
-* @brief 	位置汇报循环线程
-* @param arg	  传入线程的参数，此处为NULL
+* @brief 	位置汇报的处理
+* @param report_params	位置汇报处理需要的参数(当前时间/ 距离和累计时间/  距离)
 *
+* @return 下次位置汇报处理的时间间隔，单位s
 */
 static unsigned int report_period_treat(fleety_report_params_t * report_params)
 {
@@ -309,7 +315,120 @@ static unsigned int report_period_treat(fleety_report_params_t * report_params)
 	return timeout_threhold;
 }
 
+/*
+* @brief 	位置跟踪的处理
+* @param report_params	位置汇报处理需要的参数(当前时间/ 距离和累计时间/  距离)
+*
+* @return 下次位置汇报处理的时间间隔，单位s
+*/
+static unsigned int trace_period_treat(fleety_report_params_t * period_params)
+{
+	unsigned int timeout_threhold;
+	unsigned int distance_threhold;
+	gps_info_t gps_info;
 
+	trace_params_t trace_params;
+
+	DbgFuncEntry();
+		
+	gps_get_info(&gps_info);
+		
+	get_trace_setting(&trace_params);
+
+	if(trace_params.policy == TIME_POLICY)
+	{
+		timeout_threhold = trace_params.interval;
+		distance_threhold = 0;
+
+		if(timeout_threhold)
+		{
+			gb905_trace_send();
+			period_params->total_elapse += trace_params.interval;
+
+			if(period_params->total_elapse >= trace_params.threhold)
+			{
+				period_params->total_elapse = 0;
+				stop_trace_mode();
+			}
+		}
+	}
+	else if(trace_params.policy == DISTANCE_POLICY)
+	{
+		timeout_threhold = 1;
+		distance_threhold = trace_params.interval;
+
+		if(distance_threhold)
+		{
+			period_params->distance += gps_info.speed;
+			period_params->total_distance += gps_info.speed;
+					
+			if(period_params->distance >= trace_params.interval)
+			{
+				period_params->distance = 0;
+				gb905_trace_send();
+			}
+
+			if(period_params->total_distance >= trace_params.threhold)
+			{
+				period_params->total_distance = 0;
+				stop_trace_mode();
+			}
+		}
+	}
+	else if(trace_params.policy == TIME_DISTANCE_POLICY)
+	{
+		timeout_threhold = 1;
+		distance_threhold = 0;
+
+		if(period_params->elapse >= trace_params.interval)
+		{
+			period_params->elapse = 0;
+			gb905_trace_send();
+		}
+				
+		period_params->elapse += timeout_threhold;
+				
+		period_params->total_distance += gps_info.speed;
+		if(period_params->total_distance >= trace_params.threhold)
+		{
+			period_params->total_distance = 0;
+			stop_trace_mode();
+		}
+	}
+	else if(trace_params.policy == DISTANCE_TIME_POLICY)
+	{
+		timeout_threhold = 1;
+		distance_threhold = trace_params.interval;
+
+		if(distance_threhold)
+		{
+			period_params->distance += gps_info.speed;
+			period_params->total_elapse += 1;
+					
+			if(period_params->distance >= trace_params.interval)
+			{
+				period_params->distance = 0;
+
+				gb905_trace_send();
+			}
+
+			if(period_params->total_elapse >= trace_params.threhold)
+			{
+				period_params->total_elapse = 0;
+				stop_trace_mode();
+			}
+		}
+
+	}
+	else
+	{
+		DbgWarn("don't support the policy!(0x%x)",trace_params.policy);
+	}
+
+	DbgFuncExit();
+
+	return timeout_threhold;
+}
 
 
 /*
@@ -337,18 +456,16 @@ static void * fleety_report_loop_func(void *arg)
 	{
 		pthread_mutex_lock(&fleety_report_lock);
 
-		#if 0
-		if(get_location_trace_status())
+		// 当前位置汇报模式or    位置跟踪模式
+		if(get_trace_mode())
 		{
-			timeout_threhold = period_trace_treat(&period_params);	
+			timeout_threhold = trace_period_treat(&report_params);	
 		}
 		else
 		{
-			timeout_threhold = period_report_treat(&period_params);
+			timeout_threhold = report_period_treat(&report_params);
 		}
-		#endif
-
-		timeout_threhold = report_period_treat(&report_params);
+		
 
 		DbgPrintf("timeout_threhold = 0x%x\r\n",timeout_threhold);
 
@@ -408,7 +525,7 @@ void fleety_report_init(void)
 * @brief 	需要立即发送位置汇报消息给服务器
 * 
 */
-void fleety_report(int id)
+void fleety_report(void)
 {
 	DbgFuncEntry();
 	

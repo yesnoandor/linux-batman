@@ -58,6 +58,9 @@ ifeq ($(platform), qcom)
 endif
 
 ifeq ($(platform), mtk)
+	CROSS_COMPILE = arm-linux-androideabi-
+	CFLAGS += --sysroot=$(SYSDIR) -pie -fPIE -D PLATFORM_MTK
+	LDFLAGS += --sysroot=$(SYSDIR) -static
 endif
 
 ifeq ($(platform), hw)
@@ -80,7 +83,7 @@ AR = $(CROSS_COMPILE)ar
 ARFLAGS = cr
 CFLAGS +=  -I$(INCDIR) -Wall 
 
-LDFLAGS +=  -L$(LIBDIR) -levent_core -levent_pthreads  -ldebug -lfifo #-lpthread -lcb -llist -lnmea #-ljpeg -lspeex -lsqlite3 -static -lpthread
+LDFLAGS +=  -L$(LIBDIR) -levent_core -levent_pthreads -lmxml -lnmea -ldebug -lfifo  #-lpthread -lcb -llist  #-ljpeg -lspeex -lsqlite3 -static -lpthread
 
 DEFS = 
 CFLAGS += $(DEFS)

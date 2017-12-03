@@ -1,3 +1,20 @@
+/****************************************Copyright (c)**************************************************                         
+** File name:			common.h
+** Descriptions:		 
+**
+**------------------------------------------------------------------------------------------------------
+** Created by:		wenyu_xu
+** Created date:		2017-11-04
+** Version:			1.0
+** Descriptions:		The original version
+**
+**------------------------------------------------------------------------------------------------------
+** Modified by:			
+** Modified date:	
+** Version:
+** Descriptions:		
+********************************************************************************************************/
+
 #ifndef _COMMON_H
 #define	_COMMON_H
 
@@ -26,15 +43,7 @@ extern "C" {
 
 #include 	<pthread.h>
 
-#if defined (PLATFORM_UBUNTU)
-#include	"platform/ubuntu.h"
-#elif defined (PLATFORM_QCOM)
-#include	"platform/msm8909.h"
-#elif defined (PLATFORM_HW)
-#include	"platform/hi3520d.h"
-#else
-#error "No Support This Platform"
-#endif
+#include	"platform/platform.h"
 
 #define		MAX_IMEI_CHARS_SIZE		16
 #define		MAX_IMSI_CHARS_SIZE		16

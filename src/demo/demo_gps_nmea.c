@@ -1,10 +1,10 @@
 /****************************************Copyright (c)**************************************************                         
-** File name:			msm8909.h
+** File name:			demo_gps_nmea.c
 ** Descriptions:		 
 **
 **------------------------------------------------------------------------------------------------------
 ** Created by:		wenyu_xu
-** Created date:		2017-11-09
+** Created date:		2017-11-23
 ** Version:			1.0
 ** Descriptions:		The original version
 **
@@ -14,22 +14,39 @@
 ** Version:
 ** Descriptions:		
 ********************************************************************************************************/
-#ifndef _MSM8909_H
-#define	_MSM8909_H
+#include	"common.h"
+	
+	
+#include	"module/itop/authorize/itop_authorize.h"
+
+#include	"module/gps/gps_nmea.h"
+
+#include	"middleware/uart/fleety_uart.h"
+#include	"middleware/event/fleety_event.h"
+#include	"middleware/socket/fleety_socket.h"
+
+#define		DEBUG_Y
+#include	"libs/debug.h"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+int demo_gps_nmea(void)	
+{
+	DbgFuncEntry();
+	
+	//itop_authorize_loop();
 
+	//fleety_event_init();
+	//fleety_socket_init();
 
-#define		meter_uart_device		"/dev/ttyS0"
-#define		toplight_uart_device	"/dev/ttyS1"
+	gps_nmea_init();
+	
+	fleety_uart_init();
+	
+	DbgFuncExit();
 
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+	while(1);
+	
+	return 0;
+}  
+	 
 

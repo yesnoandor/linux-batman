@@ -26,7 +26,6 @@
 #include	"middleware/socket/fleety_socket.h"
 	
 
-
 #define		DEBUG_Y
 #include	"libs/debug.h"
 
@@ -47,7 +46,9 @@ void gb905_build_report_body(report_body_t * report_body)
 	gps_get_info(&gps_info);
 
 	// 
-	report_body->alarm.whole = EndianReverse32(taxi_status.alarm.whole);
+	report_body->alarm.whole = 0;
+	report_body->alarm.flag.emergency = taxi_status.hw.flag.alarm;
+	report_body->alarm.whole = EndianReverse32(report_body->alarm.whole);
 
 	// 
 	report_body->status.whole = 0;
@@ -92,6 +93,11 @@ void gb905_build_report(gb905_report_t * gb905_report)
 	gb905_build_report_body(&gb905_report->report_body);
 }
 
+/** 
+* @brief 	发送位置汇报数据
+* @param gb905_report 		整个位置汇报数据结构地址
+*
+*/
 void gb905_report_send(void)
 {
 	gb905_report_t gb905_report;

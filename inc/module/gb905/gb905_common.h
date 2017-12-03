@@ -21,8 +21,8 @@
 extern "C" {
 #endif
 
-#define		PROTOCOL_2011	0
-#define		PROTOCOL_2014	1
+//#define		PROTOCOL_2011	0
+//#define		PROTOCOL_2014	1
 
 #define		MESSAGE_GENERAL_UP_ACK				0x0001
 #define		MESSAGE_HEART_BEAT					0x0002
@@ -30,7 +30,7 @@ extern "C" {
 #define		MESSAGE_UPDATE_RESULT				0x0105
 #define		MESSAGE_LOCATION_REPORT				0x0200
 #define		MESSAGE_GET_LOCATION_ACK			0x0201
-#define		MESSAGE_TRACE_LOCATION_ACK			0x0202
+#define		MESSAGE_LOCATION_TRACE				0x0202
 #define		MESSAGE_LOCATION_SUPPLEMENT_REPORT	0x0203
 #define		MESSAGE_EVENT_LIST_ACK				0x0301
 #define		MESSAGE_QUESTION_ACK				0x0302
@@ -134,34 +134,25 @@ typedef struct{
 	unsigned char msg_vendor_type;					// 终端标识第一字节为’0x10’
 	uuid_device_id_t uuid_device_id;				// 终端标识之设备编号
 	unsigned short msg_serial_number;				// 消息体流水号 （按发送顺序从0 开始循环累加）
-}__packed gb905_msg_header_t ,*p_gb905_msg_header_t;
+}__packed gb905_header_t ,*p_gb905_header_t;
 
-#if 0
-/*
-* 记录GB905  消息缓存
-*/
-typedef struct{
-	unsigned char * raw_msg_buf;					// 转义前的原始数据缓存
-	int raw_msg_len;								// 转义前的原始数据长度
-	unsigned char * msg_buf;						// 转义后的消息数据缓存
-	int msg_len;									// 转义后的消息数据长度
-}__packed gb905_msg_t,*p_gb905_msg_t;
-#endif
 
+// 通用应答的消息体信息数据格式
 typedef struct{
 	unsigned short seq;
 	unsigned short id;
 	unsigned char result;
-}__packed msg_general_ack_t;
+}__packed ack_body_t;
 
+//通用应答的整个消息数据格式 
 typedef  struct
 {
     unsigned char start_magic_id;
-    gb905_msg_header_t header;
-    msg_general_ack_t ack;
+    gb905_header_t header;
+    ack_body_t ack_body;
     unsigned char xor;
     unsigned char end_magic_id;
-} __packed gb905_general_ack_t;
+} __packed gb905_ack_t;
 
 // 用BCD  码表示时间
 typedef struct {
@@ -190,15 +181,17 @@ typedef union
 }gb905_timestamp_id_t;
 
 
-void gb905_build_header(gb905_msg_header_t * header, unsigned short msg_id, unsigned short msg_len);
+void gb905_build_header(gb905_header_t * header, unsigned short msg_id, unsigned short msg_len);
 void gb905_build_timestamp(gb905_bcd_timestamp_t * timestamp);
+unsigned int gb905_build_timestamp_id(void);
 
 void gb905_send_data(unsigned char socket_index,unsigned char * buf, int len);
+void gb905_send_ack(gb905_header_t * header,unsigned char result);
 
 int gb905_protocol_ayalyze(unsigned char * buf,int len);
 
-void gb905_debug_header(gb905_msg_header_t * header);
-void gb905_debug_ack(msg_general_ack_t * ack);
+void gb905_debug_header(gb905_header_t * header);
+void gb905_debug_ack(ack_body_t * ack);
 
 #ifdef __cplusplus
 }

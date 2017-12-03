@@ -21,26 +21,21 @@
 #include	"event2/bufferevent.h" 
 #include	"event2/buffer.h" 
 #include	"event2/util.h"
+#include	"event2/thread.h"
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/heart_beat/gb905_heart_beat.h"
 
 #include	"middleware/event/fleety_event.h"
 
-//#define		DEBUG_Y
+#define		DEBUG_Y
 #include	"libs/debug.h"
 
 //----------
-#define		auth_server_ip_addr		"218.90.157.214"
-#define		auth_server_port		8688
-#define		main_server_ip_addr		"192.168.62.34"	//"127.0.0.1"		//"180.168.34.250"
-#define		main_server_port		10004			//9999			//5285
-#define		aux_server_ip_addr		""
-#define		aux_server_port			0
-#define		ui_server_ip_addr		"127.0.0.1"
-#define		ui_server_port			7777
 
-#define		MAX_SOCKET_NUM			2
+
+
+#define		MAX_SOCKET_NUM			3
 
 
 
@@ -174,11 +169,16 @@ static void cmd_msg_cb(int fd, short events, void* arg)
 static void main_server_read_cb(struct bufferevent* bev, void* arg)  
 {
 	unsigned char msg[1024];
-	int len =0,size=0;
+	int len =0;
+	int offset=0;
+	struct evbuffer *input;
 
 	DbgFuncEntry();
 
-	len = bufferevent_read(bev, msg, sizeof(msg));
+	//len = bufferevent_read(bev, msg, sizeof(msg));
+
+	input = bufferevent_get_input(bev);
+	len = evbuffer_copyout(input, msg, sizeof(msg));
 
 	{
 		int i;
@@ -189,10 +189,11 @@ static void main_server_read_cb(struct bufferevent* bev, void* arg)
 		}
 	}
 	
-	size = gb905_protocol_ayalyze(msg,len);
+	offset = gb905_protocol_ayalyze(msg,len);
+	evbuffer_drain(input,offset);
 
-	DbgPrintf("size = %d\r\n",size);
-	
+	DbgPrintf("offset = %d\r\n",offset);
+
 	DbgFuncExit(); 
 }
 
@@ -368,7 +369,7 @@ static void * fleety_socket_loop_func(void *arg)
 		tSockAddr.sin_addr.s_addr = inet_addr(server_ip[i]);
 		tSockAddr.sin_port = htons(server_port[i]);
 	
-		//连接服务器
+		// 连接服务器
 		if(bufferevent_socket_connect(bev, (struct sockaddr*)&tSockAddr, sizeof(tSockAddr)) < 0)
 		{
 			DbgError("connect to server error(ip = %s,port = %d) failed!\r\n",server_ip[i],server_port[i]); 

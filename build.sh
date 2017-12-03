@@ -13,6 +13,7 @@ Examples:
 	$0 mtk
 	$0 hw
 	$0 all
+	$0 clean
 "
 
 # 显示帮助
@@ -26,7 +27,7 @@ function build_ubuntu()
 	echo "build ubuntu::++++++++++"
 	
 	make clean
-	sleep 2
+	sleep 1
 	
 	core=$(grep 'processor' /proc/cpuinfo | sort -u | wc -l)
 	make platform=ubuntu -j$core
@@ -39,7 +40,7 @@ function build_qcom()
 	echo "build qcom::++++++++++"
 	
 	make clean
-	sleep 2
+	sleep 1
 
 	NDK="/home/wenyu/Android/Sdk/ndk-bundle"
 	QCOM_PATH="$NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/"
@@ -55,9 +56,20 @@ function build_qcom()
 
 function build_mtk()
 {
-	echo "build mtk6537::++++++++++"
+	echo "build mtk::++++++++++"
+
+	make clean
+	sleep 1
+
+	NDK="/home/wenyu/Android/Sdk/ndk-bundle"
+	MTK_PATH="$NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/"
+	PATH=$PATH:$MTK_PATH
+
+	core=$(grep 'processor' /proc/cpuinfo | sort -u | wc -l)
 	
-	echo "build mtk6537::----------"
+	make platform=mtk -j$core
+
+	echo "build mtk::----------"
 }
 
 function build_hw()
@@ -65,7 +77,7 @@ function build_hw()
 	echo "build hw::++++++++++"
 
 	make clean
-	sleep 2
+	sleep 1
 	
 	core=$(grep 'processor' /proc/cpuinfo | sort -u | wc -l)
 	make platform=hw -j$core

@@ -27,7 +27,7 @@
 typedef  struct
 {
     unsigned char start_magic_id;
-    gb905_msg_header_t header;
+    gb905_header_t header;
     unsigned char xor;
     unsigned char end_magic_id;
 } __packed gb905_heart_beat_t;

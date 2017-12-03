@@ -16,6 +16,7 @@ void build_file_path(char * file_path,const char * file_name)
 	DbgFuncExit();
 }
 
+
 int file2info(const char * file_name,unsigned char *buff,int len)
 {
 	FILE *fp;

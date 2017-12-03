@@ -106,6 +106,7 @@ OUTDIR		:= $(TOPDIR)/out
 OBJDIR		:= $(OUTDIR)/objs
 BINDIR		:= $(OUTDIR)/bin
 GCOVDIR		:= $(OUTDIR)/gcov
+RELEASEDIR	:= $(OUTDIR)/release
 
 ifeq ($(platform), hw)
 LIBDIR		:= $(TOPDIR)/libs/hw/a
@@ -118,17 +119,28 @@ NDKDIR		:=/home/wenyu/Android/Sdk/ndk-bundle
 SYSDIR		:=$(NDKDIR)/platforms/android-19/arch-arm
 endif
 
+
+ifeq ($(platform), mtk)
+LIBDIR		:= $(TOPDIR)/libs/mtk/a
+
+NDKDIR		:=/home/wenyu/Android/Sdk/ndk-bundle
+SYSDIR		:=$(NDKDIR)/platforms/android-19/arch-arm
+endif
+
 ifeq ($(platform), ubuntu)
 LIBDIR		:= $(TOPDIR)/libs/ubuntu/a
 endif
 
 # 目录宏导出
-export		TOPDIR INCDIR LIBDIR OUTDIR OBJDIR BINDIR DOCDIR RESDIR LOGDIR 
+export		TOPDIR INCDIR LIBDIR OUTDIR OBJDIR BINDIR DOCDIR RESDIR LOGDIR RELEASEDIR
 
 ifeq ($(platform), qcom)
 export		NDKDIR SYSDIR 			
 endif
 
+ifeq ($(platform), mtk)
+export		NDKDIR SYSDIR 			
+endif
 
 #$(warning topdir:$(TOPDIR))
 #$(warning incdir:$(INCDIR))
@@ -139,7 +151,7 @@ endif
 
 
 # 设定需要排除编译的目录
-EXDIRS := out inc libs doc resource log sbin
+EXDIRS := out inc libs doc resource log sbin release
 export EXDIRS
 
 
@@ -162,9 +174,10 @@ export EXDIRS
 #$(eval $(call ENUM_INCDIR,$(INCDIR)))
 
 
-
-
 # 设定编译的程序目标
+# default target
+TARGET		:= fleety_batman_u
+
 ifeq ($(platform), ubuntu)
 TARGET		:= fleety_batman_u
 endif

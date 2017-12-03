@@ -1,0 +1,27 @@
+/home/wenyu/apps/linux-batman/src/platform/ubuntu/ubuntu_imei.o: \
+ ubuntu_imei.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_keys.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_relay.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_imei.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/imei.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/platform/ubuntu/ubuntu_keys.o: \
+ ubuntu_keys.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_keys.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_relay.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_imei.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/status.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/event/fleety_event.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/platform/ubuntu/ubuntu_relay.o: \
+ ubuntu_relay.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_keys.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_relay.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_imei.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

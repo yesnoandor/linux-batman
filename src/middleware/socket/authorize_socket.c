@@ -49,15 +49,18 @@ static authorize_socket_mngr_t	authorize_socket_mngr;
 static void authorize_server_read_cb(struct bufferevent* bev, void* arg)  
 {
 	unsigned char msg[1024];
-	size_t len;
+	size_t len,offset;
 	struct event_base* base = (struct event_base*)arg;
+	struct evbuffer *input;
 
 	DbgFuncEntry();
 
-	sleep(3);
+	//sleep(3);
+	//len = bufferevent_read(bev, msg, sizeof(msg));
 
-	len = bufferevent_read(bev, msg, sizeof(msg));
-
+	input=bufferevent_get_input(bev);
+	len = evbuffer_copyout(input, msg, sizeof(msg));
+	
 	{
 		int i;
 		DbgPrintf("len = %d\r\n",len);
@@ -67,7 +70,8 @@ static void authorize_server_read_cb(struct bufferevent* bev, void* arg)
 		}
 	}
 	
-	itop_protocol_ayalyze(msg,len);
+	offset = itop_protocol_ayalyze(msg,len);
+	evbuffer_drain(input,offset);
 
 	if(is_authorized())
 	{

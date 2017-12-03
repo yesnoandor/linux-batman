@@ -25,6 +25,10 @@
 #include	"module/info/device_info.h"
 
 #include	"module/gb905/gb905_common.h"
+#include	"module/gb905/report/gb905_report.h"
+#include	"module/gb905/report/gb905_trace.h"
+#include	"module/gb905/params/gb905_params.h"
+
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -35,10 +39,6 @@
 #define		MAGIC_CHAR			0x7E
 
 #define		TEMINAL_ID			0x10
-
-
-
-
 
 
 /** 
@@ -100,12 +100,6 @@ static int gb905_unescape(unsigned char *dest, unsigned char *src, int len)
 	
 	for(i=0,j=0; i<len; i++)
 	{
-		//if(src[i] == MAGIC_CHAR)
-		//{
-		//	DbgError("magic number error!\r\n");
-		//	return -1;
-		//}
-		
 		if(src[i]== ESCAPE_CHAR)
 		{
 			i++;
@@ -137,19 +131,33 @@ static int gb905_unescape(unsigned char *dest, unsigned char *src, int len)
 	return j;
 }
 
-
+/** 
+   * @brief 	服务器对终端的通用应答的解析
+   * @param buf	收到应答的缓冲地址
+   * @param len	收到应答的缓冲长度
+   *
+   */
 static void gb905_common_ack_treat(unsigned char *buf,int len)
 {
-	msg_general_ack_t * ack;
+	ack_body_t * ack_body;
 
 	DbgFuncEntry();
 	
-	ack = (msg_general_ack_t *)(&buf[1 + sizeof(gb905_msg_header_t)]);
+	ack_body = (ack_body_t *)buf;
 	
-	ack->seq = EndianReverse16(ack->seq);
-	ack->id = EndianReverse16(ack->id);
+	ack_body->seq = EndianReverse16(ack_body->seq);
+	ack_body->id = EndianReverse16(ack_body->id);
 
-	gb905_debug_ack(ack);
+	if(len != sizeof(ack_body_t) || ack_body->result != GB905_RESULT_OK)
+	{
+		DbgWarn("common ack (server --> terminal) faile!(id = 0x%x)\r\n",ack_body->id);
+	}
+	else
+	{
+		DbgGood("common ack (server --> terminal) ok!(id = 0x%x)\r\n",ack_body->id);
+	}
+
+	gb905_debug_ack(ack_body);
 
 	DbgFuncExit();
 }
@@ -211,7 +219,7 @@ static int gb905_get_a_full_msg(unsigned char *buf,int len,buff_mgr_t *msg)
 	DbgFuncEntry();
 	
 	ret = gb905_find_magic_char(buf,len,&head_offset);
-	if(ret && (len - head_offset >= sizeof(gb905_msg_header_t) + 3))
+	if(ret && (len - head_offset >= sizeof(gb905_header_t) + 3))
 	{
 		ret = gb905_find_magic_char(buf + head_offset + 1,len - head_offset - 1,&tail_offset);
 		tail_offset += head_offset + 1;
@@ -240,17 +248,22 @@ static int gb905_get_a_full_msg(unsigned char *buf,int len,buff_mgr_t *msg)
 	return offset;	
 }
 
-
+/** 
+* @brief 	GB905  协议的消息体具体解析
+* @param msg		存放消息的缓存数据结构
+* 
+* @return			解析是否成功
+*/
 static bool gb905_parse_header(buff_mgr_t * msg)
 {
 	bool ret = true;
 	unsigned int mtd_id;
-	gb905_msg_header_t * header;
+	gb905_header_t * header;
 	device_info_t info;
 
 	DbgFuncEntry();
 
-	header = (gb905_msg_header_t *)(msg->buf + 1);
+	header = (gb905_header_t *)(msg->buf + 1);
 
 	gb905_debug_header(header);
 
@@ -262,7 +275,7 @@ static bool gb905_parse_header(buff_mgr_t * msg)
 	DbgPrintf("msg_len = 0x%x\r\n",header->msg_len);
 	DbgPrintf("msg_serial_number = 0x%x\r\n",header->msg_serial_number);
 	
-	if( header->msg_len != msg->len - sizeof(gb905_msg_header_t) - 3)
+	if( header->msg_len != msg->len - sizeof(gb905_header_t) - 3)
 	{
 		ret = false;
 
@@ -305,15 +318,22 @@ static bool gb905_parse_header(buff_mgr_t * msg)
 	return ret;
 }
 
+
+/** 
+   * @brief 			GB905  协议的消息体具体解析
+   * @param 	msg		存放消息的缓存数据结构
+   * 
+   * @return			解析是否成功
+   */
 static bool gb905_parse_protocol(buff_mgr_t * msg)
 {
-	gb905_msg_header_t * header;
+	gb905_header_t * header;
 	unsigned short msg_no;
-	//unsigned char result;
+	unsigned char result;
 
 	DbgFuncEntry();
 
-	header = (gb905_msg_header_t *)(msg->buf + 1);
+	header = (gb905_header_t *)(msg->buf + 1);
 
 	msg_no = header->msg_id;
 
@@ -322,9 +342,28 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 	switch (msg_no)
 	{
 		case MESSAGE_GENERAL_DOWN_ACK:
-			gb905_common_ack_treat(msg->buf,msg->len);
+			gb905_common_ack_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			break;
+
+		case MESSAGE_GET_LOCATION:
+			gb905_report_ack_send(EndianReverse16(header->msg_serial_number));
 			break;
 			
+		case MESSAGE_TRACE_LOCATION:
+			result = gb905_trace_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			gb905_send_ack(header,result);
+			break;
+
+		case MESSAGE_SET_PARAMS:
+			result = gb905_set_params_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);		
+			gb905_send_ack(header,result);
+			break;
+
+		case MESSAGE_GET_PARAMS:
+			gb905_get_params_treat(msg->buf,msg->len);
+			//gb905_get_params_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len,header->msg_serial_number);
+			break;	
+		
 	#if 0
 		case MESSAGE_GENERAL_DOWN_ACK:
 			gb905_common_ack_treat(msg->msg_buf,msg->msg_len);
@@ -469,19 +508,14 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 }
 
 
-/*
-* 分析一条消息命令
-* @msg： 存放完整消息命令的buf
-* @header : 解析出协议的头信息
-* @return：解析出协议，需要偏移的长度
-*/
+
 /** 
    * @brief 	解析出一条完整的消息
    * @param msg		buff  管理指针
    *
-   * @return	解析状态
+   * @return	解析是否成功
    */
-static int gb905_parse_a_full_msg(buff_mgr_t *msg)
+static bool gb905_parse_a_full_msg(buff_mgr_t *msg)
 {
 	int ret;
 
@@ -499,6 +533,20 @@ static int gb905_parse_a_full_msg(buff_mgr_t *msg)
 	DbgFuncExit();
 
 	return ret;
+}
+
+/** 
+* @brief 	构造GB905  的终端ACK  的消息体
+* @param ack	 	GB905  ack  消息体的地址
+* @param header	GB905  ack  对应的header 数据结构的地址
+* @param result  	返回服务器的状态
+*
+*/
+static void gb905_build_ack_body(ack_body_t * ack_body,gb905_header_t * header,unsigned char result)
+{
+	ack_body->seq = EndianReverse16(header->msg_serial_number);
+	ack_body->id = EndianReverse16(header->msg_id);
+	ack_body->result = result;
 }
 
 //----------
@@ -600,7 +648,7 @@ int gb905_protocol_ayalyze(unsigned char * buf,int len)
 * @param msn_len  	消息体的长度
 *
 */
-void gb905_build_header(gb905_msg_header_t * header, unsigned short msg_id, unsigned short msg_len)
+void gb905_build_header(gb905_header_t * header, unsigned short msg_id, unsigned short msg_len)
 {
 	device_info_t info;
 	unsigned int mtd_id;
@@ -610,7 +658,7 @@ void gb905_build_header(gb905_msg_header_t * header, unsigned short msg_id, unsi
 
 	get_device_info(&info);
 	
-	memset(header,0x00,sizeof(gb905_msg_header_t));
+	memset(header,0x00,sizeof(gb905_header_t));
 	header->msg_id = EndianReverse16(msg_id);
 	header->msg_len = EndianReverse16(msg_len);
 
@@ -626,6 +674,23 @@ void gb905_build_header(gb905_msg_header_t * header, unsigned short msg_id, unsi
 
 	DbgFuncExit();
 }
+
+
+/** 
+* @brief 	构造GB905  的终端整个ACK   数据结构
+* @param ack	 	GB905  ack  应答数据结构的地址
+* @param header	GB905  ack  对应的header 数据结构的地址
+* @param result  	返回服务器的状态
+*
+*/
+void gb905_build_ack(gb905_ack_t * ack,gb905_header_t * header,unsigned char result)
+{
+	gb905_build_header(&ack->header,MESSAGE_GENERAL_UP_ACK,sizeof(ack_body_t));
+	gb905_build_ack_body(&ack->ack_body,header,result);
+}
+
+
+	
 
 
 /** 
@@ -651,6 +716,30 @@ void gb905_build_timestamp(gb905_bcd_timestamp_t * timestamp)
 	decimal2bcd(p->tm_sec,&timestamp->bcd[5],1);
 
 	DbgFuncExit();
+}
+
+/** 
+* @brief 	构造GB905  的时间格式(UINT32)
+*
+* @return		表示时间戳的整型数据
+*/
+unsigned int gb905_build_timestamp_id(void)
+{
+	time_t timep;
+	struct tm *p;
+	gb905_timestamp_id_t timestamp_id;
+	
+	time(&timep);
+	p = localtime(&timep);
+
+	timestamp_id.timestamp.sec = p->tm_sec;
+	timestamp_id.timestamp.min = p->tm_min;
+	timestamp_id.timestamp.hour = p->tm_hour;
+	timestamp_id.timestamp.mday = p->tm_mday;
+	timestamp_id.timestamp.mon = p->tm_mon + 1;
+	timestamp_id.timestamp.year = p->tm_year - 100;
+
+	return timestamp_id.id; 
 }
 
 void gb905_send_data(unsigned char socket_index,unsigned char * buf, int len)
@@ -695,8 +784,20 @@ void gb905_send_data(unsigned char socket_index,unsigned char * buf, int len)
 	free(new_buf);
 }
 
+void gb905_send_ack(gb905_header_t * header,unsigned char result)
+{
+	gb905_ack_t ack;
+
+	DbgFuncEntry();
+
+	gb905_build_ack(&ack,header,result);
+	gb905_send_data(MAIN_SOCKET,(unsigned char *)&ack,sizeof(gb905_ack_t));
+	
+	DbgFuncExit();
+}
+
 //-----
-void gb905_debug_header(gb905_msg_header_t * header)
+void gb905_debug_header(gb905_header_t * header)
 {
 	DbgFuncEntry();
 
@@ -714,13 +815,13 @@ void gb905_debug_header(gb905_msg_header_t * header)
 	DbgFuncExit();
 }
 
-void gb905_debug_ack(msg_general_ack_t * ack)
+void gb905_debug_ack(ack_body_t * ack_body)
 {
 	DbgFuncEntry();
 
-	DbgPrintf("seq = 0x%x\r\n",ack->seq);
-	DbgPrintf("id = 0x%x\r\n",ack->id);
-	DbgPrintf("result = 0x%x\r\n",ack->result);
+	DbgPrintf("seq = 0x%x\r\n",ack_body->seq);
+	DbgPrintf("id = 0x%x\r\n",ack_body->id);
+	DbgPrintf("result = 0x%x\r\n",ack_body->result);
 	
 	DbgFuncExit();
 }

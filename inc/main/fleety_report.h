@@ -26,11 +26,13 @@ typedef  struct
 {
 	unsigned int distance;
 	unsigned int total_distance;
-    unsigned int elapse;
-    unsigned int total_elapse;
+	unsigned int elapse;
+	unsigned int total_elapse;
 }fleety_report_params_t;
 
 void fleety_report_init(void);
+void fleety_report(void);
+
 
 #ifdef __cplusplus
 }

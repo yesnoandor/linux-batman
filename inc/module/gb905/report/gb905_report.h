@@ -16,7 +16,7 @@
 ********************************************************************************************************/
 #ifndef _GB905_REPORT_H
 #define _GB905_REPORT_H
-	
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -102,7 +102,7 @@ typedef struct {
 typedef  struct
 {
 	unsigned char start_magic_id;
-	gb905_msg_header_t header;
+	gb905_header_t header;
 	report_body_t report_body;
 	unsigned char xor;
 	unsigned char end_magic_id;
@@ -118,7 +118,7 @@ typedef struct {
 typedef  struct
 {
     unsigned char start_magic_id;
-    gb905_msg_header_t header;
+    gb905_header_t header;
     report_ack_body_t report_ack_body;
     unsigned char xor;
     unsigned char end_magic_id;
@@ -127,7 +127,9 @@ typedef  struct
 
 
 void gb905_report_send(void);
+void gb905_report_ack_send(unsigned short seq_number);
 
+void gb905_build_report_body(report_body_t * report_body);
 
 #ifdef __cplusplus
 }

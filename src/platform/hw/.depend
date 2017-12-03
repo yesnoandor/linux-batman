@@ -1,0 +1,10 @@
+/home/wenyu/apps/linux-batman/src/platform/hw/hw_imei.o: hw_imei.c
+/home/wenyu/apps/linux-batman/src/platform/hw/hw_keys.o: hw_keys.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_keys.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_relay.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_imei.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h
+/home/wenyu/apps/linux-batman/src/platform/hw/hw_relay.o: hw_relay.c

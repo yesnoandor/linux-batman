@@ -1,0 +1,4 @@
+/home/wenyu/apps/linux-batman/src/platform/qcom/qcom_imei.o: qcom_imei.c
+/home/wenyu/apps/linux-batman/src/platform/qcom/qcom_keys.o: qcom_keys.c
+/home/wenyu/apps/linux-batman/src/platform/qcom/qcom_relay.o: \
+ qcom_relay.c
