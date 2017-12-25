@@ -22,7 +22,9 @@
 extern "C" {
 #endif
 
+void gb905_heart_beat_reset(void);
 void gb905_heart_beat_send(void);
+void gb905_heart_beat_treat(void);
 
 
 #ifdef __cplusplus

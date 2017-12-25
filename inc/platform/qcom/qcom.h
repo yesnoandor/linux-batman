@@ -40,6 +40,8 @@ extern "C" {
 #define		ui_server_ip_addr		"127.0.0.1"
 #define		ui_server_port			7777
 
+#define		DB_FILE_PATH			""
+
 #ifdef __cplusplus
 }
 #endif

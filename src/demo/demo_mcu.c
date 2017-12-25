@@ -16,6 +16,10 @@
 ********************************************************************************************************/
 #include	"common.h"
 
+#include	"module/gb905_ex/mcu/mcu_common.h"
+
+#include	"middleware/uart/fleety_uart.h"
+#include	"middleware/event/fleety_event.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"

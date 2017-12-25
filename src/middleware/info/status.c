@@ -1,6 +1,6 @@
 /****************************************Copyright (c)**************************************************                         
 ** File name:			status.c
-** Descriptions:		获得当前运行的各种状态
+** Descriptions:		获得当前运行的车辆各种状态
 **						1. 定位or    
 **
 **------------------------------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ void stop_trace_mode(void)
 }
 
 
-// ---- 登陆/  签退函数
+// ---- 登陆/  签退状态函数
 bool get_login_mode(void)
 {
 	return taxi_status.sw.flag.login;
@@ -111,7 +111,7 @@ void set_acc_status(bool on)
 	taxi_status.hw.flag.acc = on;
 }
 
-// loading 状态函数
+// 空重车状态函数
 bool get_loading_status(void)
 {
 	return taxi_status.hw.flag.loading;
@@ -123,7 +123,7 @@ void set_loading_status(bool loading)
 }
 
 
-// alarm 状态函数
+// 报警按钮状态函数
 bool get_alarm_status(void)
 {
 	return taxi_status.hw.flag.alarm;
@@ -131,6 +131,18 @@ bool get_alarm_status(void)
 
 void set_alarm_status(bool alarm)
 {
-	taxi_status.hw.flag.loading = alarm;
+	taxi_status.hw.flag.alarm = alarm;
 }
 
+
+// 设置紧急报警状态( 报警按钮触发)
+void set_emergency_alarm_status(void)
+{
+	taxi_status.alarm.flag.emergency = 1;
+}
+
+// 清除紧急报警状态( 服务器清除)
+void reset_emergency_alarm_status(void)
+{
+	taxi_status.alarm.flag.emergency = 0;
+}

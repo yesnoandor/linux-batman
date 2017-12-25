@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-void ubuntu_keys_simu_init(void);
+int ubuntu_keys_simu_init(void);
 
 #ifdef __cplusplus
 }

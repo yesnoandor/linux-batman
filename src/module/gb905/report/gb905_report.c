@@ -45,34 +45,32 @@ void gb905_build_report_body(report_body_t * report_body)
 	taxi_get_status(&taxi_status);
 	gps_get_info(&gps_info);
 
-	// 
+	// 报警标志
 	report_body->alarm.whole = 0;
-	report_body->alarm.flag.emergency = taxi_status.hw.flag.alarm;
-	report_body->alarm.whole = EndianReverse32(report_body->alarm.whole);
+	report_body->alarm.whole = EndianReverse32(taxi_status.alarm.whole);
+	//report_body->alarm.flag.emergency = taxi_status.hw.flag.alarm;
+	//report_body->alarm.whole = EndianReverse32(report_body->alarm.whole);
 
-	// 
+	// 状态标志
 	report_body->status.whole = 0;
-	
+
 	report_body->status.flag.fix = gps_info.fixed;
+	report_body->status.flag.lat = gps_info.latitude < 0 ? 1 : 0; 	// 南纬是负，北纬是正，
+	report_body->status.flag.lon = gps_info.longitude < 0 ? 1 : 0;	// 东经是正，西经是负
 	report_body->status.flag.acc = taxi_status.hw.flag.acc;
 	report_body->status.flag.loading = taxi_status.hw.flag.loading;
-
-	#if 0
-	//remote  control
-	report_body->status.flag.oil = taxi_status->oil_status;
-	report_body->status.flag.circuit = taxi_status->circuit_status;
-	report_body->status.flag.door_lock = taxi_status->door_lock_status;
-	report_body->status.flag.car_lock = taxi_status->car_lock_status;
-	#endif
+	report_body->status.flag.oil = taxi_status.hw.flag.oil;
+	report_body->status.flag.circuit = taxi_status.hw.flag.circuit;
+	report_body->status.flag.door_lock = taxi_status.hw.flag.door_lock;
+	report_body->status.flag.car_lock = taxi_status.hw.flag.car_lock;
 	
 	report_body->status.whole = EndianReverse32(report_body->status.whole);
 
-	// 
+	// 位置信息
 	report_body->latitude = EndianReverse32(gps_info.latitude);
 	report_body->longitude = EndianReverse32(gps_info.longitude);
 	report_body->speed = EndianReverse16(gps_info.speed);
 	report_body->direction = gps_info.direction;
-
 	gb905_build_timestamp(&(report_body->timestamp));
 	
 	DbgFuncExit();

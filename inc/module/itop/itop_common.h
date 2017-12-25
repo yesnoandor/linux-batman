@@ -208,7 +208,7 @@ typedef struct
     unsigned short   mtd_h;
 }__packed itop_ext_header_t;
 
-int itop_protocol_ayalyze(unsigned char * buf,int len);
+int itop_protocol_analyze(unsigned char * buf,int len);
 int itop_send_data(unsigned char socket_index,unsigned char * buf, int len);
 void itop_protocol_request(unsigned char * buf, int len);
 

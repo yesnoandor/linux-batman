@@ -16,7 +16,8 @@
 ********************************************************************************************************/
 #include	"common.h"
 
-#define		TEST_HW_VERSION			"v1.0.0.0"
+//#define		TEST_HW_VERSION			"v1.0.0.0"
+#define		TEST_HW_VERSION			"570LL"
 #define		TEST_SW_VERSION			"v1.0.0.0"
 
 void get_hw_version(char * buff)

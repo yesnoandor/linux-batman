@@ -16,6 +16,9 @@
 ********************************************************************************************************/
 #include	"common.h"
 
+
+
+
 unsigned short crc_computer(const unsigned char * ptr,int count)
 {
 	unsigned short crc = 0 ;
@@ -97,5 +100,41 @@ unsigned short sum16_compute(unsigned char * p_data, unsigned int len)
 	}
 
 	return sum;
+}
+
+
+
+/**
+* @brief 		检查目录是否存在
+* @param 	path		目录路径
+* 
+* @return		返还是否存在
+*	= false,  不存在
+*	= true,   存在
+*/
+bool is_folder_exist(const char* path)
+{
+    DIR *dp;
+    if ((dp = opendir(path)) == NULL)
+    {
+        return false;
+    }
+
+    closedir(dp);
+	
+    return true;
+}
+
+/**
+* @brief 		检查文件是否存在
+* @param 	path		目录路径
+* 
+* @return		返还是否存在
+*	= false,  不存在
+*	= true,   存在 
+*/
+bool is_file_exist(const char* path)
+{
+    return !access(path, F_OK);
 }
 

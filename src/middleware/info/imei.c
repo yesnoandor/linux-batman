@@ -1,6 +1,6 @@
 /****************************************Copyright (c)**************************************************                         
 ** File name:			imei.c
-** Descriptions:		 
+** Descriptions:		获取和设置IMEI   信息
 **
 **------------------------------------------------------------------------------------------------------
 ** Created by:		wenyu_xu
@@ -15,6 +15,8 @@
 ** Descriptions:		
 ********************************************************************************************************/
 #include	"common.h"
+
+#include	"misc/misc.h"
 
 #include	"middleware/info/imei.h"
 
@@ -33,13 +35,17 @@ void get_imei(char * imei)
 	DbgFuncExit();
 }
 
-
-void set_imei(char * imei)
+// IMEI  长度可能小于MAX_IMEI_CHARS_SIZE  
+void set_imei(char * imei,int len)
 {
 	DbgFuncEntry();
+
+	len = MIN(len,MAX_IMEI_CHARS_SIZE);
+
+	DbgPrintf("len = %d\r\n",len);
 	
 	memset(IMEI,0x00,MAX_IMEI_CHARS_SIZE);
-	memcpy(IMEI,imei,MAX_IMEI_CHARS_SIZE);
+	memcpy(IMEI,imei,len);
 
 	DbgFuncExit();
 }

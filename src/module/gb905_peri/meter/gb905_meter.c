@@ -31,6 +31,8 @@
 
 #include	"middleware/info/status.h"
 #include	"middleware/info/setting.h"
+#include	"middleware/info/meter.h"
+
 #include	"middleware/uart/fleety_uart.h"
 
 #include	"middleware/event/fleety_event.h"
@@ -46,9 +48,10 @@
 
 
 #define		METER_COMMAND_QUERY_STATE			0x0000
-#define		METER_COMMAND_TIMING				0x0001
+#define		METER_COMMAND_CALIBRATION_TIME		0x0001
 #define		METER_COMMAND_QUERY_PARAMETER		0x0004
-#define		METER_COMMAND_SET_PARAMETER			0x0005
+#define		METER_COMMAND_SET_PARAMETER			0x0005		
+#define		METET_COMMAND_OPERAION_RECORD		0x0006
 
 #define		METER_COMMAND_OPEN					0x00E0
 #define		METER_COMMAND_OPEN_SUCCESS			0x00E1
@@ -72,7 +75,7 @@ static void gb905_meter_build_header(gb905_peri_header_t* header,unsigned short 
 	gb905_peri_build_header(header,cmd,len);
 }
 
-static void gb905_meter_build_timestamplit(gb905_meter_timestamplit_t * timestamp)
+static void gb905_meter_build_timestamp(gb905_meter_timestamp_t * timestamp)
 {
 	time_t timep;
 	struct tm *p;
@@ -129,7 +132,7 @@ static void gb905_meter_build_login_ack_body(gb905_meter_loginout_ack_body_t * a
 	setting_params = get_setting_params();
 
 	// 获取当前刷卡时间
-	gb905_meter_build_timestamplit(&ack_body->swipe_timestamplit);
+	gb905_meter_build_timestamp(&ack_body->swipe_timestamplit);
 
 	// 获取当前ISU  状态
 	ack_body->terminal_status = EndianReverse16(0x0000);
@@ -239,17 +242,28 @@ static unsigned char gb905_meter_open_success_treat(unsigned char *buf,unsigned 
 
 	body = (gb905_meter_open_success_body_t *)buf;
 
-	set_loading_status(true);
-	
-	event.id = LOGINING_EVENT;
-	event.param = true;
-	event.priority = DAFAULT_PRIORITY;
-	
-	fleety_event_push(&event);
+	DbgPrintf("company license number = %s\r\n",body->company_license_number);
+
+	if(body->result == METER_RESULT_OK)
+	{	
+		//set_loading_status(true);
+
+		set_meter_open_success_info((char *)body);
+		
+		event.id = LOGINING_EVENT;
+		event.param = true;
+		event.priority = DAFAULT_PRIORITY;
+		
+		fleety_event_push(&event);
+	}
+	else
+	{
+		DbgError("meter open failed!\r\n");
+	}
 	
 	DbgFuncExit();
 
-	return METER_RESULT_OK;
+	return body->result;
 }
 
 
@@ -270,8 +284,9 @@ static unsigned char gb905_meter_close_success_treat(unsigned char *buf,unsigned
 
 	body = (gb905_meter_close_success_body_t *)buf;
 
-	set_loading_status(false);
-	
+	//set_loading_status(false);
+	set_meter_close_success_info((char *)body);
+		
 	event.id = LOGINING_EVENT;
 	event.param = false;
 	event.priority = DAFAULT_PRIORITY;
@@ -340,26 +355,41 @@ static void gb905_meter_heart_beat_ack(void)
 */
 static void gb905_meter_parse_heart_beat(unsigned char *buf,unsigned short len)
 {
-	unsigned char i;
+	
 	gb905_meter_heart_beat_body_t * heart_beat_body;
 
 	DbgFuncEntry();
 	
 	heart_beat_body = (gb905_meter_heart_beat_body_t *)buf;
 
-	#if 0
-	DbgPrintf("meter state = 0x%x\r\n",heart_beat_body->meter_state.whole);
 
-	for(i = 0;i < ARRAY_SIZE(heart_beat_body->company_license_number);i++)
-	{
-		DbgPrintf("company license number[%d] = 0x%x \r\n",i,heart_beat_body->company_license_number[i]);
+	if(heart_beat_body->meter_state.flag.force_on)
+	{	
+		DbgPrintf("meter force on\r\n");
 	}
 
-	for(i = 0;i < ARRAY_SIZE(heart_beat_body->driver_license_number);i++)
+	if(heart_beat_body->meter_state.flag.force_off)
+	{	
+		DbgPrintf("meter force off\r\n");
+	}
+	
+	#if 0
 	{
-		DbgPrintf("driver license number[%d] = 0x%x \r\n",i,heart_beat_body->driver_license_number[i]);
+		unsigned char i;
+		DbgPrintf("meter state = 0x%x\r\n",heart_beat_body->meter_state.whole);
+
+		for(i = 0;i < ARRAY_SIZE(heart_beat_body->company_license_number);i++)
+		{
+			DbgPrintf("company license number[%d] = 0x%x \r\n",i,heart_beat_body->company_license_number[i]);
+		}
+
+		for(i = 0;i < ARRAY_SIZE(heart_beat_body->driver_license_number);i++)
+		{
+			DbgPrintf("driver license number[%d] = 0x%x \r\n",i,heart_beat_body->driver_license_number[i]);
+		}
 	}
 	#endif
+	
 	set_meter_connected();
 	
 	DbgFuncExit();
@@ -466,13 +496,16 @@ static unsigned char gb905_meter_loading_treat(unsigned char * buf,unsigned shor
 */
 static unsigned char gb905_meter_unloading_treat(unsigned char * buf,unsigned short len)
 {
-	//gb2014_meter_operation_t * meter_operation;
+	gb905_meter_operation_t * meter_operation;
 	//unsigned int loading;
 
 	fleety_event_t event;
 		
 
 	DbgFuncEntry();
+
+	meter_operation = (gb905_meter_operation_t *)buf;
+	set_meter_operation_info((char *)meter_operation);
 
 	
 	set_loading_status(false);

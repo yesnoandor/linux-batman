@@ -37,12 +37,18 @@ typedef  struct
 unsigned char ui_imei_info_treat(unsigned char *buf,unsigned int len)
 {
 	char *imei_info;
+	char temp[32];
 
 	DbgFuncEntry();
+
+	DbgGood("len = %d\r\n",len);
 	
 	imei_info = (char *)buf;
 	
-	set_imei(imei_info);
+	set_imei(imei_info,len);
+
+	get_imei(temp);
+	DbgGood("imei = %s\r\n",temp);
 	
 	DbgFuncExit();
 

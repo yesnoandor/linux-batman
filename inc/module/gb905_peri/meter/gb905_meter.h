@@ -53,7 +53,8 @@ typedef struct {
 // 用BCD  码表示当前时间
 typedef struct{
 	unsigned char bcd[6];				// YYYY-MM-DD-hh-mm
-}__packed gb905_meter_timestamplit_t;
+}__packed gb905_meter_timestamp_t;
+
 
 
 
@@ -163,7 +164,7 @@ typedef struct{
 	unsigned char company_license_number[16];			// 公司经营许可证号(ASCII码,  不足16  字节，右补0)
 	unsigned char driver_license_number[19];			// 驾驶员从业资格证号(ASCII码,  不足19  字节，右补0)
 	unsigned char plate_number[6];						// 车牌号(ASCII 码)
-	gb905_meter_timestamplit_t swipe_timestamplit;	// 刷卡时间
+	gb905_meter_timestamp_t swipe_timestamplit;			// 刷卡时间
 	unsigned short terminal_status;						// ISU 状态
 	unsigned char time_limit[5];						// 时间限制: YYYYMMDDhh, 全0   代表无限制
 	unsigned char number_of_times_limit[2];				// 次数限制: 0000 表示无限制
@@ -197,21 +198,21 @@ typedef struct{
 	unsigned char company_license_number[16];		// 公司经营许可证号(ASCII码,  不足16  字节，右补0)
 	unsigned char driver_license_number[19];		// 驾驶员从业资格证号(ASCII码,  不足19  字节，右补0)
 	unsigned char plate_number[6];					// 车牌号(ASCII 码)
-	gb905_meter_timestamplit_t open_timestamplit;	// 计价器开机时间
+	gb905_meter_timestamp_t open_timestamplit;	// 计价器开机时间
 	unsigned int total_operation_number;			// 总营运次数
 	unsigned char result;							// 操作结果
 }__packed gb905_meter_open_success_body_t;
 
 
-//计价器关机成功消息体数据结构(METER  -->  ISU)
+// 计价器关机成功消息体数据结构(METER  -->  ISU)
 typedef struct{
 	unsigned char company_license_number[16];		// 公司经营许可证号(ASCII码,  不足16  字节，右补0)
 	unsigned char driver_license_number[19];		// 驾驶员从业资格证号(ASCII码,  不足19  字节，右补0)
 	unsigned char plate_number[6];					// 车牌号(ASCII 码)
 	
 	unsigned char pulse[2];							// 计价器K   值
-	gb905_meter_timestamplit_t open_timestamplit;	// 当班开机时间
-	gb905_meter_timestamplit_t close_timestamplit;	// 当班关机时间
+	gb905_meter_timestamp_t open_timestamplit;	// 当班开机时间
+	gb905_meter_timestamp_t close_timestamplit;	// 当班关机时间
 	
 	unsigned char duty_mileage[3];					// 当班里程(xxxxx.x km)
 	unsigned char driver_operation_km[3];			// 当班营运里程
@@ -225,9 +226,23 @@ typedef struct{
 	unsigned char total_operation_km[4];			// 总营运里程
 	unsigned char unit_price[2];					// 单价
 	unsigned int total_operation_num;				// 总营运次数
-	unsigned char logout_mode;						// ---????
 }__packed gb905_meter_close_success_body_t;
 
+//  计价器营运数据结构(METER  -->  ISU)
+typedef struct{
+	unsigned char plate_number[6];					// 车牌号(ASCII 码)
+	unsigned char company_license_number[16];		// 公司经营许可证号(ASCII码,  不足16  字节，右补0)
+	unsigned char driver_license_number[19];		// 驾驶员从业资格证号(ASCII码,  不足19  字节，右补0)
+	unsigned char get_on_timestamp[5];				// 上车时间(BCD码YY-MM-DD-hh-mm)
+	unsigned char get_off_timestamp[2];				// 下车时间(BCD码hh-mm)
+	unsigned char distance[3];						// 计程公里(BCD码xxxxx.x km)
+	unsigned char empty_distance[2];				// 空驶公里(BCD码xxx.x km)
+	unsigned char surcharge[3];						// 附加费(BCD码xxxxx.x 元)
+	unsigned char waiting_time[2];					// 等待计时时间(BCD码hh-mm)
+	unsigned char transaction_amount[3];			// 交易金额(BCD码xxxxx.x 元)
+	unsigned int  car_number;						// 当前车次	
+	unsigned char transaction_type;					// 交易类型
+}__packed gb905_meter_operation_t;
 
 
 void gb905_meter_query_state(void);

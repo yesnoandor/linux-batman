@@ -24,7 +24,7 @@ extern "C" {
 
 
 void get_imei(char * imei);
-void set_imei(char * imei);
+void set_imei(char * imei,int len);
 
 
 #ifdef __cplusplus

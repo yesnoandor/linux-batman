@@ -1,6 +1,6 @@
 /****************************************Copyright (c)**************************************************                         
-** File name:			gb905_trace.c
-** Descriptions:		位置跟踪(0x8202/0x0202)   的协议解析
+** File name:			gps.c
+** Descriptions:		获取和设置GPS   信息
 **
 **------------------------------------------------------------------------------------------------------
 ** Created by:		wenyu_xu
@@ -21,7 +21,7 @@
 #define		DEBUG_Y
 #include	"libs/debug.h"
 
-static gps_info_t gps_now;
+static gps_info_t gps_now = {{0},0,0,0,0,0,0};
 
 void gps_get_info(gps_info_t * gps_info)
 {

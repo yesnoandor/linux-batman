@@ -23,7 +23,7 @@
 
 #include	"module/gb905/operation/gb905_operate.h"
 
-
+#include	"middleware/info/eval.h"
 #include	"middleware/socket/fleety_socket.h"
 
 #define		DEBUG_Y
@@ -68,7 +68,7 @@ static void gb905_build_operation_eval(void)
 	DbgFuncEntry();
 
 	pre_operation.eval_id.id = EndianReverse32(gb905_build_timestamp_id());
-	//pre_operation.eval_state = get_eval_state();
+	pre_operation.eval_state = get_eval_state();
 	pre_operation.eval_ext = 0x00;
 	
 	DbgFuncExit();
@@ -145,7 +145,12 @@ void gb905_build_pre_operation(int phase)
 	DbgFuncExit();
 }
 
-void gb2014_send_operate(unsigned char * meter_buf,int meter_len)
+
+/**
+* @brief 	发送营运数据
+*
+*/
+void gb905_send_operate(unsigned char * meter_buf,int meter_len)
 {
 	gb905_header_t * header;
 	unsigned char * operation_buf;

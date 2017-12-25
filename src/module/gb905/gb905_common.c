@@ -21,13 +21,15 @@
 #include	"misc/endian.h"
 
 #include	"middleware/socket/fleety_socket.h"
-
-#include	"module/info/device_info.h"
+#include	"middleware/info/device.h"
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/report/gb905_report.h"
 #include	"module/gb905/report/gb905_trace.h"
 #include	"module/gb905/params/gb905_params.h"
+#include	"module/gb905/heart_beat/gb905_heart_beat.h"
+
+
 
 
 #define		DEBUG_Y
@@ -155,6 +157,17 @@ static void gb905_common_ack_treat(unsigned char *buf,int len)
 	else
 	{
 		DbgGood("common ack (server --> terminal) ok!(id = 0x%x)\r\n",ack_body->id);
+
+		switch (ack_body->id)
+		{
+			case MESSAGE_HEART_BEAT:
+				gb905_heart_beat_reset();
+				break;
+		
+			default:
+				break;
+		}
+
 	}
 
 	gb905_debug_ack(ack_body);
@@ -361,7 +374,6 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 
 		case MESSAGE_GET_PARAMS:
 			gb905_get_params_treat(msg->buf,msg->len);
-			//gb905_get_params_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len,header->msg_serial_number);
 			break;	
 		
 	#if 0
@@ -694,11 +706,11 @@ void gb905_build_ack(gb905_ack_t * ack,gb905_header_t * header,unsigned char res
 
 
 /** 
-* @brief 	构造GB905  的时间格式(BCD[6] YY-MM-DD-hh-mm-ss)
+* @brief 	构造GB905  的时间格式(BCD[6], YY-MM-DD-hh-mm-ss)
 * @param timestamp	 	GB905  时间格式数据的地址
 *
 */
-void gb905_build_timestamp(gb905_bcd_timestamp_t * timestamp)
+void gb905_build_timestamp(gb905_timestamp_t * timestamp)
 {
 	time_t timep;
 	struct tm *p;

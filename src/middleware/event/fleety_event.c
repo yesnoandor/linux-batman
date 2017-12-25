@@ -16,10 +16,21 @@
 ********************************************************************************************************/
 #include	"common.h"
 
-#include	"middleware/socket/fleety_socket.h"
-#include	"middleware/event/fleety_event.h"
-
 #include	"libs/fifo.h"
+
+
+#include	"middleware/info/eval.h"
+
+#include	"middleware/socket/fleety_socket.h"
+
+#include	"middleware/event/fleety_event.h"
+#include	"middleware/event/eval/fleety_eval.h"
+#include	"middleware/event/login/fleety_login.h"
+#include	"middleware/event/loading/fleety_loading.h"
+#include	"middleware/event/acc/fleety_acc.h"
+#include	"middleware/event/alarm/fleety_alarm.h"
+
+#include	"main/fleety_system.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -92,34 +103,33 @@ void fleety_event_treat(void)
 			
 			switch (event.id)
 			{
-				case SIMU_EVENT:
-					//fleety_simu_treat(event.event_param);
+				case IN_CHANNEL_EVENT:
 					break;
 					
 				case LOADING_EVENT:
-					//event_pro_init->loading_treat(event.event_param);
+					fleety_loading_treat(event.param);
 					break;
 					
 				case LOGINING_EVENT:
-					//fleety_logining_treat(event.event_param);
+					fleety_login_treat(event.param);
 					break;
 					
 				case EVAL_EVENT:
-					//set_eval_state(event.event_param);
-					//		event_pro_init->eval_treat();
+					set_eval_state(event.param);
+					fleety_eval_treat();
 					//		gb905_take_picture(TAKE_PIC_REASON_EVALUTION);
 					break;
 					
 				case ACC_EVENT:
-					//fleety_acc_treat(event.event_param);
+					fleety_acc_treat(event.param);
 					break;
 								
 				case ALARM_EVENT:
-					//fleety_alarm_treat(event.event_param);
+					fleety_alarm_treat(event.param);
 					break;
 							
 				case EXIT_EVENT:
-					//exit = 1;
+					exit_system_process();
 					break;
 						
 				case EXPORT_EVENT:

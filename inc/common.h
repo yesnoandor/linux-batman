@@ -27,11 +27,13 @@ extern "C" {
 #include	<sys/types.h>
 #include	<sys/socket.h>  
 #include	<sys/time.h>
+#include	<sys/stat.h>			// 获取文件属性
 
 #include	<netinet/in.h>  
 #include	<arpa/inet.h>  
 #include	<errno.h>  
 #include	<unistd.h>  			// unix 系统服务函数定义
+#include 	<dirent.h>				// unix类目录操作的头文件
 #include	<termios.h>				// 终端控制定义
 #include	<fcntl.h>				// 文件控制定义
 
@@ -42,6 +44,8 @@ extern "C" {
 #include	<stdbool.h>
 
 #include 	<pthread.h>
+
+#include	<linux/input.h>
 
 #include	"platform/platform.h"
 

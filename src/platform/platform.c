@@ -16,6 +16,14 @@
 ********************************************************************************************************/
 #include	"common.h"
 
+#include	"module/gb905_ex/mcu/mcu_common.h"
+#include	"module/gps/gps_nmea.h"
+#include	"module/gprs/gprs_at_cmd.h"
+
+
+#define		DEBUG_Y
+#include	"libs/debug.h"
+
 /** 
 * @brief 	硬件平台初始化(不同平台需要初始化不同的硬件)
 *
@@ -28,17 +36,43 @@ void platform_hardware_init(void)
 #endif
 
 #if defined (PLATFORM_QCOM)
+	ui_protocol_init();
+	qcom_keys_init();
 #endif
 
 
 #if defined (PLATFORM_HW)
 	mcu_protocol_init();
+	gps_nmea_init();
+	gprs_at_protocol_init();
 #endif 
 
 #if defined (PLATFORM_MTK)
 #endif		
 }
 
+/** 
+* @brief 	硬件平台初始化(不同平台需要初始化不同的硬件)
+*
+*/
+void platform_hardware_post_init(void)
+{
+#if defined (PLATFORM_UBUNTU)
+
+#endif
+
+#if defined (PLATFORM_QCOM)
+	ui_imei_info_req();
+#endif
+
+
+#if defined (PLATFORM_HW)
+	gprs_get_imei();
+#endif
+
+#if defined (PLATFORM_MTK)
+#endif		
+}
 
 /** 
 * @brief 	硬件平台的寄电器输出

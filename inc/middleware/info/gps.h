@@ -27,7 +27,7 @@ extern "C" {
 
 typedef struct
 {
-    nmeaTIME	utc;            		//  UTC of position 
+	nmeaTIME	utc;            		//  UTC of position 
 
 	int		fixed;						// 是否定位
 	unsigned int latitude;				// 纬度 (1/10000 分)

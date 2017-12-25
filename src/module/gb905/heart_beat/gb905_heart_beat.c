@@ -24,6 +24,8 @@
 #define		DEBUG_Y
 #include	"libs/debug.h"
 
+#define		GB905_HEART_BEAT_THREHOLD		40
+
 typedef  struct
 {
     unsigned char start_magic_id;
@@ -31,6 +33,15 @@ typedef  struct
     unsigned char xor;
     unsigned char end_magic_id;
 } __packed gb905_heart_beat_t;
+
+
+static int gb905_heart_beat_count = 0;
+
+
+void gb905_heart_beat_reset(void)
+{
+	gb905_heart_beat_count = 0;
+}
 
 /** 
 * @brief 	向国标服务器发送心跳命令
@@ -46,13 +57,22 @@ void gb905_heart_beat_send(void)
 	len = 0;
 	
 	gb905_build_header(&heart_beat.header,MESSAGE_HEART_BEAT,len);
+	
 #ifdef DEBUG_Y
 	gb905_debug_header(&heart_beat.header);
 #endif
 
 	gb905_send_data(MAIN_SOCKET,(unsigned char *)&heart_beat,sizeof(gb905_heart_beat_t));
-	
+
+	gb905_heart_beat_count++;
+
 	DbgFuncExit();
 }
 
-
+void gb905_heart_beat_treat(void)
+{
+	if(gb905_heart_beat_count > GB905_HEART_BEAT_THREHOLD)
+	{
+		DbgError("GB905 Heart Beat Timeout!\r\n");
+	}
+}

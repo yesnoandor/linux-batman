@@ -16,7 +16,15 @@
 ********************************************************************************************************/
 #include	"common.h"
 
+#include	"misc/bcd.h"
 #include	"misc/misc.h"
+#include	"misc/check.h"
+
+
+#include	"libs/mxml.h"
+
+#include	"middleware/db/file/db_file_path.h"
+#include	"middleware/db/file/db_file_xml.h"
 
 
 #include	"middleware/info/setting.h"
@@ -26,11 +34,13 @@
 #define		DEBUG_Y
 #include	"libs/debug.h"
 
-static trace_params_t	trace_params;
 
-
+#define		SETTING_FILE		"setting.xml"
+#define		SETTING_FILE_BAK	"setting.bak"
 
 //----- 
+static trace_params_t	trace_params;
+
 void get_trace_setting(trace_params_t * setting)
 {
 	DbgFuncEntry();
@@ -68,15 +78,249 @@ void debug_trace_setting(void)
 //-----
 static setting_params_t  setting_params;
 
+static unsigned char * setting_params_point[] = 
+{
+	(unsigned char *)&setting_params.heartbeat_interval,
+	(unsigned char *)&setting_params.tcp_msg_ack_timeout,
+	(unsigned char *)&setting_params.tcp_msg_retry_count,	
+	(unsigned char *)&setting_params.sms_msg_ack_timeout,
+	(unsigned char *)&setting_params.sms_msg_retry_count,
+
+	(unsigned char *)setting_params.main_server_apn,
+	(unsigned char *)setting_params.main_server_username,
+	(unsigned char *)setting_params.main_server_password,
+	(unsigned char *)setting_params.main_server_ipaddr,
+	(unsigned char *)setting_params.vice_server_apn,
+	(unsigned char *)setting_params.vice_server_username,
+	(unsigned char *)setting_params.vice_server_password,
+	(unsigned char *)setting_params.vice_server_ipaddr,
+	(unsigned char *)&setting_params.main_server_tcp_port,
+	(unsigned char *)&setting_params.vice_server_tcp_port,
+	(unsigned char *)setting_params.pay_main_server_apn,
+	(unsigned char *)&setting_params.pay_main_server_tcp_port,
+	(unsigned char *)setting_params.pay_vice_server_apn,
+	(unsigned char *)&setting_params.pay_vice_server_tcp_port,
+
+	(unsigned char *)&setting_params.location_report_policy,
+	(unsigned char *)&setting_params.location_report_scheme,
+	(unsigned char *)&setting_params.time_report_logout_interval,
+	(unsigned char *)&setting_params.time_report_accoff_interval,
+	(unsigned char *)&setting_params.time_report_accon_interval,
+	(unsigned char *)&setting_params.time_report_vacant_internal,
+	(unsigned char *)&setting_params.time_report_occupied_internal,
+	(unsigned char *)&setting_params.time_report_idle_interval,
+	(unsigned char *)&setting_params.time_report_alarm_interval,
+	(unsigned char *)&setting_params.distance_report_logout_interval,
+	(unsigned char *)&setting_params.distance_report_accoff_interval,
+	(unsigned char *)&setting_params.distance_report_accon_interval,
+	(unsigned char *)&setting_params.distance_report_vacant_interval,
+	(unsigned char *)&setting_params.distance_report_occupied_interval,
+	(unsigned char *)&setting_params.distance_report_idle_interval,
+	(unsigned char *)&setting_params.distance_report_alarm_interval,
+	(unsigned char *)&setting_params.report_angle_interval,
+	
+	(unsigned char *)setting_params.phone_number_monitor_center,
+	(unsigned char *)setting_params.phone_number_reset,
+	(unsigned char *)setting_params.phone_number_factory_recovery,
+	(unsigned char *)setting_params.phone_number_sms_center,
+	(unsigned char *)setting_params.phone_number_sms_rev,
+	(unsigned char *)&setting_params.telephone_answer_policy,
+	(unsigned char *)&setting_params.max_time_talk_once,
+	(unsigned char *)&setting_params.max_time_talk_month,
+	(unsigned char *)&setting_params.short_phone_number_len,
+	(unsigned char *)setting_params.phone_number_monitor,
+	(unsigned char *)setting_params.device_password,
+	(unsigned char *)&setting_params.tts_volume,
+
+	(unsigned char *)&setting_params.alarm_mask,
+	(unsigned char *)&setting_params.alarm_sms_mask,
+	(unsigned char *)&setting_params.alarm_video_mask,
+	(unsigned char *)&setting_params.alarm_video_save_mask,
+	(unsigned char *)&setting_params.max_speed,
+	(unsigned char *)&setting_params.over_speed_duration,
+	(unsigned char *)&setting_params.over_driver,
+	(unsigned char *)&setting_params.min_rest_period,
+	(unsigned char *)&setting_params.max_parking_time,
+	(unsigned char *)&setting_params.driver_time_one_day,
+	
+	(unsigned char *)&setting_params.video_quality,
+	(unsigned char *)&setting_params.video_brightness,
+	(unsigned char *)&setting_params.video_contrast,
+	(unsigned char *)&setting_params.video_saturation,
+	(unsigned char *)&setting_params.video_chroma,
+	
+	(unsigned char *)&setting_params.vehicle_milometer,
+	(unsigned char *)&setting_params.vehicle_province_id,
+	(unsigned char *)&setting_params.vehicle_city_id,
+	(unsigned char *)&setting_params.meter_operation_count_limit,
+	(unsigned char *)setting_params.meter_operation_count_time,
+	(unsigned char *)setting_params.company_license_number,
+	(unsigned char *)setting_params.company_name,
+	(unsigned char *)setting_params.plate_number,
+
+	(unsigned char *)&setting_params.voice_record_mode,
+	(unsigned char *)&setting_params.voice_record_period,
+	(unsigned char *)&setting_params.lcd_heart_beat_time,
+	(unsigned char *)&setting_params.led_heart_beat_time,
+	(unsigned char *)&setting_params.time_idle_after_accoff,
+
+	(unsigned char *)&setting_params.video_protocol_mode,
+	(unsigned char *)setting_params.video_server_apn,
+	(unsigned char *)setting_params.video_server_password,
+	(unsigned char *)setting_params.video_server_password,
+	(unsigned char *)setting_params.video_server_ipaddr,
+	(unsigned char *)&setting_params.vidoe_server_port,
+};
+
+static char * setting_params_type[] = 
+{
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+	"DWORD",
+	"DWORD",
+	"STRING",
+	"DWORD",
+	"STRING",
+	"DWORD",
+
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"STRING",
+	"STRING",
+	"DWORD",
+
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+	"DWORD",
+
+	"DWORD",
+	"STRING",
+	"STRING",
+	"STRING",
+	"STRING",
+	"DWORD",
+};
+
+
+
+
+
+/** 
+* @brief	从xml    文件中获取国标参数，如果没对应xml   文件，则第一次创建
+*
+*/
+void init_setting_params(void)
+{
+	bool ret;
+
+	DbgFuncEntry();
+
+	ret = xml2data(SETTING_FILE,setting_params_point);
+	if(!ret)
+	{
+		memset(&setting_params,0x00,sizeof(setting_params_t));
+
+		setting_params.heartbeat_interval = 30;
+		
+		setting_params.tcp_msg_ack_timeout = 60;
+		setting_params.tcp_msg_retry_count = 3;
+				
+
+		strcpy((char *)setting_params.main_server_ipaddr,main_server_ip_addr);
+		setting_params.main_server_tcp_port = main_server_port;
+		strcpy((char *)setting_params.vice_server_ipaddr,aux_server_ip_addr);
+		setting_params.vice_server_tcp_port = aux_server_port;
+
+		setting_params.location_report_policy = 0;
+		setting_params.location_report_scheme = 0;
+		setting_params.time_report_accon_interval = 30;
+		setting_params.time_report_accoff_interval = 300;
+
+		DbgPrintf("list size = %d\r\n",ARRAY_SIZE(setting_params_point));
+	
+		init_xml(SETTING_FILE,setting_params_point,setting_params_type,ARRAY_SIZE(setting_params_point));
+	}
+
+	debug_setting_params();
+
+	DbgFuncExit();
+}
+
+
 setting_params_t * get_setting_params(void)
-{ 
+{
 	return &setting_params;
 }
 
 void set_setting_params(void)
 {
 	// 写入xml  文件
-	debug_setting_params();
+	data2xml(SETTING_FILE,setting_params_point);
 }
 
 void debug_setting_params(void)

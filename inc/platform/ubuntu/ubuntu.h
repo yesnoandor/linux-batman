@@ -34,17 +34,21 @@ extern "C" {
 #define		tsm_uart_device			""
 #define		gps_uart_device			""
 #define		mcu_uart_device			""
+#define		gprs_uart_device		""
 
 
+// "180.168.34.250"	5606	:  ÍôÑóµÄÍâÍø¶Ë¿Ú	
 
 #define		auth_server_ip_addr		"218.90.157.214"
 #define		auth_server_port		8688
-#define		main_server_ip_addr		"192.168.0.102"			//"192.168.62.34"	//"180.168.34.250"
-#define		main_server_port		10005					//10004			//5285
+#define		main_server_ip_addr		"180.168.34.250"			//"192.168.62.34"	//"180.168.34.250"
+#define		main_server_port		5606					//10004			//5285
 #define		aux_server_ip_addr		""
 #define		aux_server_port			0
-#define		ui_server_ip_addr		""
-#define		ui_server_port			7777
+#define		ui_server_ip_addr		""						//"192.168.1.7"
+#define		ui_server_port			0						//8090
+
+#define		DB_FILE_PATH				""
 
 #ifdef __cplusplus
 }

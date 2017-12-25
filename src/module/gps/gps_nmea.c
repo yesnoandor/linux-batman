@@ -127,8 +127,8 @@ static int gps_nmea_get_a_full_msg(buff_mgr_t *msg)
 		tail_offset += head_offset + 7;
 		if(ret)
 		{
-			//DbgPrintf("head_offset = %d\r\n",head_offset);
-			//DbgPrintf("tail_offset = %d\r\n",tail_offset);
+			DbgPrintf("head_offset = %d\r\n",head_offset);
+			DbgPrintf("tail_offset = %d\r\n",tail_offset);
 			msg->buf = (msg->buf + head_offset);
 			msg->len = tail_offset - head_offset + 2;
 			offset = tail_offset + 2;
@@ -142,9 +142,11 @@ static int gps_nmea_get_a_full_msg(buff_mgr_t *msg)
 	{
 		offset = head_offset;
 	}
+	
 	//DbgPrintf("offset = %d\r\n",offset);
 	
 	DbgFuncExit();
+	
 	return offset;
 }
 
@@ -155,6 +157,7 @@ static int gps_nmea_get_a_full_msg(buff_mgr_t *msg)
 */
 static void gps_nmea_parse_a_full_msg(buff_mgr_t *msg)
 {
+	int i;
 	gps_info_t gps_info;
 	char time1[60] = {0};
 
@@ -162,18 +165,18 @@ static void gps_nmea_parse_a_full_msg(buff_mgr_t *msg)
 
 	DbgFuncEntry();
 	
-
+#if 0
 	DbgPrintf("parse full gps msg :\r\n");
-	int i;
+
 
 	for(i = 0;i < msg->len;i++)
 	{
 		DbgPrintf("%c",msg->buf[i]);
 	}
 	DbgPrintf("\r\n\r\n");
-
+#endif
 	
-#if 0
+#if 1
 	for(i = 0;i < msg->len;i++)
 	{
 		DbgPrintf(" 0x%02x ",msg->buf[i]);
@@ -188,13 +191,14 @@ static void gps_nmea_parse_a_full_msg(buff_mgr_t *msg)
 		   "$GPRMC",
 	};
 	
-	if((0 == memcmp((const char*)msg->buf,pheads[1],6)) || (0 == memcmp((const char*)msg->buf,pheads[3],6)))
+	//if((0 == memcmp((const char*)msg->buf,pheads[1],6)) || (0 == memcmp((const char*)msg->buf,pheads[3],6)))
+	//{
 	for(i=0;i<ARRAY_SIZE(pheads);i++)
 	{
 		if(0 == memcmp((const char*)msg->buf,pheads[i],6))
 		{
 			nmea_parse(&nmea_parser,(const char*)msg->buf,(int)msg->len,&nmea_info);
-
+			
 			DbgPrintf("---- info->utc.year = %d \r\n",nmea_info.utc.year);
 			DbgPrintf("---- info->utc.mon = %d \r\n",nmea_info.utc.mon);
 			DbgPrintf("---- info->utc.day = %d \r\n",nmea_info.utc.day);
@@ -256,6 +260,7 @@ static void gps_nmea_parse_a_full_msg(buff_mgr_t *msg)
 			gps_set_info(&gps_info);
 			
 		}
+		//}
 	}
 	
 	DbgFuncExit();
@@ -264,7 +269,7 @@ static void gps_nmea_parse_a_full_msg(buff_mgr_t *msg)
 
 //-----
 /** 
-* @brief 	GB905   的NMEA  协议解析
+* @brief 	GPS  NMEA  协议解析
 * @param buf	 	存放NMEA   消息缓存
 * @param len		存放NMEA   消息长度
 *
@@ -294,10 +299,10 @@ int gps_nmea_protocol_ayalyze(unsigned char * buf,int len)
 		msg_buf += offset;
 		msg_len -= offset;
 	}while(offset && gps_buf.len && msg_len > 0);
-	
-	return (len - msg_len);
 
 	DbgFuncExit();
+	
+	return (len - msg_len);
 }
 
 

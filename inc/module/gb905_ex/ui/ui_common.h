@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #define			SYSTEM2UI_GENERAL_ACK		0x0001
+#define			SYSTEM2UI_HEART_BEAT		0x0002	
 #define			STSTEM2UI_IMEI_REQ			0x0720
 
 #define			UI2SYSTEM_GENERAL_ACK		0x8001

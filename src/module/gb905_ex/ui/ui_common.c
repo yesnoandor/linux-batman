@@ -20,6 +20,8 @@
 #include	"module/gb905_ex/ui/ui_common.h"
 #include	"module/gb905_ex/ui/ui_gps.h"
 #include	"module/gb905_ex/ui/ui_imei.h"
+#include	"module/gb905_ex/ui/ui_heart_beat.h"
+
 
 
 #include	"middleware/socket/fleety_socket.h"
@@ -54,6 +56,18 @@ static void ui_protocol_common_ack_treat(unsigned char *buf,int len)
 	else
 	{
 		DbgGood("ui socket common ack (server --> terminal) ok!(id = 0x%x)\r\n",ack_body->id);
+
+		switch (ack_body->id)
+		{
+			case SYSTEM2UI_HEART_BEAT:
+				ui_heart_beat_reset();
+				break;
+				
+			default:
+				break;
+		}
+
+		
 	}
 	
 	gb905_ex_debug_ack(ack_body);

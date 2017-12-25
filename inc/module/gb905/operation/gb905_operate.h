@@ -28,16 +28,16 @@ enum{
 	OPERATION_EVAL,
 };
 
-
+// 营运数据的数据格式
 typedef struct {
-	report_body_t	begin_report;
-	report_body_t	end_report;
-	gb905_timestamp_id_t operation_id;
-	gb905_timestamp_id_t eval_id;
-	unsigned char eval_state;
-	unsigned short eval_ext;
-	unsigned int order_id;
-	unsigned int meter_content;
+	report_body_t	begin_report;			// 空转重时车位置信息
+	report_body_t	end_report;				// 重转空时车位置信息
+	gb905_timestamp_id_t operation_id;		// 营运ID
+	gb905_timestamp_id_t eval_id;			// 评价ID
+	unsigned char eval_state;				// 评价选项
+	unsigned short eval_ext;				// 评价选项扩展
+	unsigned int order_id;					// 电召订单ID
+	unsigned int meter_content;				// 计价器营运数据
 }__packed operation_body_t;
 
 // 营运数据的整个消息数据格式
@@ -50,8 +50,8 @@ typedef  struct
     unsigned char end_magic_id;
 } __packed gb905_operation_t;
 
-
-
+void gb905_build_pre_operation(int phase);
+void gb905_send_operate(unsigned char * meter_buf,int meter_len);
 
 
 #ifdef __cplusplus

@@ -27,7 +27,7 @@ typedef struct{
 	unsigned int content;
 }__packed msg_params_t;
 
-
+void gb905_get_params_treat(unsigned char *buf,int len);
 unsigned char gb905_set_params_treat(unsigned char *buf,int len);
 
 #ifdef __cplusplus

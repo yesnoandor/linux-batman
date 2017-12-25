@@ -40,7 +40,7 @@ int demo_fleety_event(void)
 		fleety_event_t event;
 
 		sleep(15);
-		event.id = SIMU_EVENT;
+		event.id = LOADING_EVENT;
 		event.param = 0;
 		event.priority = DAFAULT_PRIORITY;
 		fleety_event_push(&event);

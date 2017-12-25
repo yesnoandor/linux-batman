@@ -24,6 +24,11 @@
 #include	"libs/debug.h"
 
 
+#define		MCU_HEART_BEAT_THREHOLD		40
+
+
+static int mcu_heart_beat_count = 0;
+
 typedef  struct
 {
     unsigned char start_magic_id;
@@ -32,8 +37,12 @@ typedef  struct
     unsigned char end_magic_id;
 } __packed mcu_protocol_heart_beat_t;
 
+void mcu_heart_beat_reset(void)
+{
+	mcu_heart_beat_count = 0;
+}
 
-void stm32_send_heart_beat(void)
+void mcu_heart_beat_send(void)
 {
 	int len;
 	mcu_protocol_heart_beat_t heart_beat;
@@ -47,5 +56,14 @@ void stm32_send_heart_beat(void)
 	mcu_protocol_send_data((unsigned char *)&heart_beat,sizeof(mcu_protocol_heart_beat_t));
 		
 	DbgFuncExit();
+}
+
+
+void mcu_heart_beat_treat(void)
+{
+	if(mcu_heart_beat_count > MCU_HEART_BEAT_THREHOLD)
+	{
+		DbgError("MCU Heart Beat Timeout!\r\n");
+	}
 }
 

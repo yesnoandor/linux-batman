@@ -249,16 +249,18 @@ static void * ubuntu_keys_simu_loop_func(void *arg)
 
 
 //-----
-void ubuntu_keys_simu_init(void)
+int ubuntu_keys_simu_init(void)
 {
-	int err;
+	int ret;
 	
 	pthread_mutex_init(&ubuntu_keys_simu_lock, NULL);
 
-	err = pthread_create(&ubuntu_keys_simu_thread_id, NULL, ubuntu_keys_simu_loop_func, NULL);
-	if(err != 0)
+	ret = pthread_create(&ubuntu_keys_simu_thread_id, NULL, ubuntu_keys_simu_loop_func, NULL);
+	if(ret != 0)
 	{
-    	DbgError("create thread error: %s\r\n",strerror(err));
+    	DbgError("create thread error: %s\r\n",strerror(ret));
 	}
+
+	return ret;
 }
 

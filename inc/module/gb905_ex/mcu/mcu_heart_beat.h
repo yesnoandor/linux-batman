@@ -25,8 +25,11 @@
 extern "C" {
 #endif
 
+#define		MCU_HEART_BEAT_TIMEOUT		60
 
-void mcu_send_heart_beat(void);
+void mcu_heart_beat_reset(void);
+void mcu_heart_beat_send(void);
+void mcu_heart_beat_treat(void);
 
 
 

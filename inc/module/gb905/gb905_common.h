@@ -157,12 +157,12 @@ typedef  struct
 // 用BCD  码表示时间
 typedef struct {
 	unsigned char bcd[6];				// YY-MM-DD-hh-mm-ss
-}__packed gb905_bcd_timestamp_t;
+}__packed gb905_timestamp_t;
 
 // 用BCD  码表示时间
-typedef struct {
-	unsigned char bcd[6];				// YYYY-MM-DD-hh-mm
-}__packed gb905_bcd_login_time_t;
+//typedef struct {
+//	unsigned char bcd[6];				// YYYY-MM-DD-hh-mm
+//}__packed gb905_login_time_t;
 
 typedef union 
 {
@@ -182,7 +182,7 @@ typedef union
 
 
 void gb905_build_header(gb905_header_t * header, unsigned short msg_id, unsigned short msg_len);
-void gb905_build_timestamp(gb905_bcd_timestamp_t * timestamp);
+void gb905_build_timestamp(gb905_timestamp_t * timestamp);
 unsigned int gb905_build_timestamp_id(void);
 
 void gb905_send_data(unsigned char socket_index,unsigned char * buf, int len);

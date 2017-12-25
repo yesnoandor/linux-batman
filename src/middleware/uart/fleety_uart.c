@@ -33,13 +33,14 @@
 #include	"module/gb905_ex/mcu/mcu_common.h"
 
 #include	"module/gps/gps_nmea.h"
+#include	"module/gprs/gprs_at_cmd.h"
 
 
+#include	"middleware/uart/fleety_uart.h"
 		
-#define		DEBUG_Y
+//#define		DEBUG_Y
 #include	"libs/debug.h"
 
-#define		MAX_UART_NUM			5
 
 typedef	void(*PTR_UART_MSG_CB)(struct bufferevent*,void*);
 typedef	void(*PTR_UART_EVENT_CB)(struct bufferevent *, short, void *);
@@ -65,7 +66,8 @@ static char * uart_device[] =
 	toplight_uart_device,
 	tsm_uart_device,
 	gps_uart_device,
-	mcu_uart_device
+	mcu_uart_device,
+	gprs_uart_device
 };
 
 
@@ -86,6 +88,9 @@ static fleety_uart_params_t termios_params[] =
 	{
 		B115200,8,1,'N',0,			// stm32 params
 	},
+	{
+		B9600,8,1,'N',0,			// gprs params
+	},
 };
 
 
@@ -105,6 +110,8 @@ static void gps_uart_read_cb(struct bufferevent* bev, void* arg);
 static void gps_uart_event_cb(struct bufferevent *bev, short event, void *arg);
 static void stm32_uart_read_cb(struct bufferevent* bev, void* arg);
 static void stm32_uart_event_cb(struct bufferevent *bev, short event, void *arg);
+static void gprs_uart_read_cb(struct bufferevent* bev, void* arg);
+static void gprs_uart_event_cb(struct bufferevent *bev, short event, void *arg);
 
 
 static PTR_UART_MSG_CB uart_read_cb[] = 
@@ -114,6 +121,7 @@ static PTR_UART_MSG_CB uart_read_cb[] =
 	tsm_uart_read_cb,
 	gps_uart_read_cb,
 	stm32_uart_read_cb,
+	gprs_uart_read_cb,
 };
 
 static PTR_UART_EVENT_CB uart_event_cb[] = 
@@ -122,7 +130,8 @@ static PTR_UART_EVENT_CB uart_event_cb[] =
 	toplight_uart_event_cb,
 	tsm_uart_event_cb,
 	gps_uart_event_cb,
-	stm32_uart_event_cb
+	stm32_uart_event_cb,
+	gprs_uart_event_cb,
 };
 
 
@@ -297,7 +306,8 @@ static void toplight_uart_read_cb(struct bufferevent* bev, void* arg)
 	//len = bufferevent_read(bev, msg, sizeof(msg));
 	input = bufferevent_get_input(bev);
 	len = evbuffer_copyout(input, msg, sizeof(msg));
-	
+
+	#if 0
 	{
 		int i;
 		DbgPrintf("len = %d\r\n",len);
@@ -306,6 +316,7 @@ static void toplight_uart_read_cb(struct bufferevent* bev, void* arg)
 			DbgPrintf("msg[%d] = 0x%x\r\n",i,msg[i]);
 		}
 	}
+	#endif
 	
 	offset = gb905_toplight_protocol_ayalyze(msg,len);
 	
@@ -377,7 +388,8 @@ static void gps_uart_read_cb(struct bufferevent* bev, void* arg)
 	//len = bufferevent_read(bev, msg, sizeof(msg));
 	input = bufferevent_get_input(bev);
 	len = evbuffer_copyout(input, msg, sizeof(msg));
-	
+
+	#if 0
 	{
 		int i;
 		DbgPrintf("len = %d\r\n",len);
@@ -386,12 +398,13 @@ static void gps_uart_read_cb(struct bufferevent* bev, void* arg)
 			DbgPrintf("msg[%d] = 0x%x\r\n",i,msg[i]);
 		}
 	}
+	#endif
 	
 	offset = gps_nmea_protocol_ayalyze(msg,len);
 	
 	evbuffer_drain(input,offset);
 
-	DbgPrintf("size = %d\r\n",offset);
+	DbgPrintf("offset = %d\r\n",offset);
 	 
 	DbgFuncExit();
 }
@@ -508,6 +521,64 @@ static void stm32_uart_event_cb(struct bufferevent *bev, short event, void *arg)
 	DbgFuncExit();
 }
 
+static void gprs_uart_read_cb(struct bufferevent* bev, void* arg)  
+{
+	unsigned char msg[1024];
+	int len = 0;
+	int offset = 0;
+	struct evbuffer *input;
+
+	DbgFuncEntry();
+
+	//len = bufferevent_read(bev, msg, sizeof(msg));
+	input = bufferevent_get_input(bev);
+	len = evbuffer_copyout(input, msg, sizeof(msg));
+
+	#if 1
+	{
+		int i;
+		DbgPrintf("len = %d\r\n",len);
+		for(i =0;i<len;i++)
+		{
+			DbgPrintf("msg[%d] = 0x%x\r\n",i,msg[i]);
+		}
+	}
+	#endif
+	
+	offset = gprs_at_protocol_ayalyze(msg,len);
+	
+	evbuffer_drain(input,offset);
+
+	DbgPrintf("size = %d\r\n",offset);
+	 
+	DbgFuncExit();
+}
+
+static void gprs_uart_event_cb(struct bufferevent *bev, short event, void *arg)  
+{
+	long index;
+	
+	DbgFuncEntry();
+
+	index = (long)arg;
+
+	DbgPrintf("index = %d\r\n",index);
+	
+	if (event & BEV_EVENT_EOF)
+		DbgPrintf("gprs uart closed!\r\n");
+	else if (event & BEV_EVENT_ERROR)
+		DbgPrintf("gprs uart some other error\n");
+
+	// 自动close 套接字和free  读写缓冲区  
+	bufferevent_free(bev);
+
+	uart_mngr_list[index].bev = NULL;
+	uart_mngr_list[index].state = 0;
+	
+	DbgFuncExit();
+}
+
+
 
 //  串口定时器事件回调函数
 static void uart_timeout_cb(int fd, short event, void * pArg)
@@ -574,7 +645,7 @@ static void * fleety_uart_loop_func(void *arg)
 	
 	// 创建并初始化一个event_base 
 	//struct event_base* base = event_base_new();
-	DbgPrintf("base = 0x%x\r\n",base);
+	//DbgPrintf("base = 0x%x\r\n",base);
 	
 	for(i=0;i<MAX_UART_NUM;i++)
 	{

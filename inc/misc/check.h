@@ -29,6 +29,10 @@ unsigned char sum8_compute(unsigned char * p_data, unsigned int len);
 unsigned char sum16_compute(unsigned char * p_data, unsigned int len);
 
 
+bool is_folder_exist(const char* path);
+bool is_file_exist(const char* path);
+
+
 #ifdef __cplusplus
 }
 #endif

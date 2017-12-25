@@ -22,6 +22,7 @@
 #include	"module/gb905_ex/mcu/mcu_gpio.h"
 #include	"module/gb905_ex/mcu/mcu_eval.h"
 #include	"module/gb905_ex/mcu/mcu_volumn.h"
+#include	"module/gb905_ex/mcu/mcu_heart_beat.h"
 
 
 #include	"middleware/uart/fleety_uart.h"
@@ -56,6 +57,17 @@ static void mcu_protocol_common_ack_treat(unsigned char *buf,int len)
 	else
 	{
 		DbgGood("gb905 ex common ack (server --> terminal) ok!(id = 0x%x)\r\n",ack_body->id);
+
+		switch (ack_body->id)
+		{
+			case SYSTEM2MCU_HEART_BEAT:
+				mcu_heart_beat_reset();
+				break;
+				
+			default:
+				break;
+		}		
+
 	}
 	
 	gb905_ex_debug_ack(ack_body);

@@ -25,8 +25,11 @@
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/heart_beat/gb905_heart_beat.h"
+#include	"module/gb905_ex/ui/ui_common.h"
 
 #include	"middleware/event/fleety_event.h"
+#include	"middleware/socket/fleety_socket.h"
+
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -35,7 +38,7 @@
 
 
 
-#define		MAX_SOCKET_NUM			3
+//#define		MAX_SOCKET_NUM			3
 
 
 
@@ -46,6 +49,8 @@ typedef	void(*PTR_SERVER_EVENT_CB)(struct bufferevent *, short, void *);
 typedef struct {
 	struct bufferevent* bev;
 	int state;		// =0,disconnected; =1,connected
+	int timeout;	// 
+	int threhold;
 }FleetySocketMngr;
 
 
@@ -192,6 +197,8 @@ static void main_server_read_cb(struct bufferevent* bev, void* arg)
 	offset = gb905_protocol_ayalyze(msg,len);
 	evbuffer_drain(input,offset);
 
+	socket_mngr_list[MAIN_SOCKET].timeout = 0;
+
 	DbgPrintf("offset = %d\r\n",offset);
 
 	DbgFuncExit(); 
@@ -235,6 +242,9 @@ static void main_server_event_cb(struct bufferevent *bev, short event, void *arg
 static void aux_server_read_cb(struct bufferevent* bev, void* arg)  
 {
 	DbgFuncEntry();
+
+	socket_mngr_list[AUX_SOCKET].timeout = 0;
+	
 	DbgFuncExit();
 }
 
@@ -246,14 +256,67 @@ static void aux_server_event_cb(struct bufferevent *bev, short event, void *arg)
 
 static void ui_server_read_cb(struct bufferevent* bev, void* arg)  
 {
+	unsigned char msg[1024];
+	int len =0;
+	int offset=0;
+	struct evbuffer *input;
+	
 	DbgFuncEntry();
-	DbgFuncExit();
-
+	
+	//len = bufferevent_read(bev, msg, sizeof(msg));
+	
+	input = bufferevent_get_input(bev);
+	len = evbuffer_copyout(input, msg, sizeof(msg));
+	
+	{
+		int i;
+		DbgPrintf("len = %d\r\n",len);
+		for(i =0;i<len;i++)
+		{
+			DbgPrintf("msg[%d] = 0x%x\r\n",i,msg[i]);
+		}
+	}
+		
+	offset = ui_protocol_ayalyze(msg,len);
+	evbuffer_drain(input,offset);
+	
+	socket_mngr_list[MAIN_SOCKET].timeout = 0;
+	
+	DbgPrintf("offset = %d\r\n",offset);
+	
+	DbgFuncExit(); 
 }
 
 static void ui_server_event_cb(struct bufferevent *bev, short event, void *arg)  
 {
+	long index;
+	
 	DbgFuncEntry();
+
+	index = (long)arg;
+
+	DbgPrintf("index = %d\r\n",index);
+	
+	// 成功连接 状态变更
+	if( BEV_EVENT_CONNECTED == event )
+	{
+        bufferevent_enable( bev, EV_READ | EV_PERSIST);
+        socket_mngr_list[index].state = 1;
+    }
+	else
+	{
+		if (event & BEV_EVENT_EOF)
+			DbgPrintf("connection closed\r\n");
+		else if (event & BEV_EVENT_ERROR)
+			DbgPrintf("some other error\n");
+
+		// 自动close 套接字和free  读写缓冲区  
+		bufferevent_free(bev);
+
+		socket_mngr_list[index].bev = NULL;
+		socket_mngr_list[index].state = 0;
+	}
+	
 	DbgFuncExit();
 }
 
@@ -275,7 +338,18 @@ static void socket_timeout_cb(int fd, short event, void * pArg)
 		{
 			continue;
 		}
-		
+
+		// 超时保护
+		socket_mngr_list[i].timeout++;
+		if(socket_mngr_list[i].timeout >= socket_mngr_list[i].threhold)
+		{
+			socket_mngr_list[i].bev = NULL;
+			socket_mngr_list[i].state = 0;
+
+			DbgWarn("socket transfer timeout\r\n");	
+		}
+
+		// 重连机制
 		if(0 == socket_mngr_list[i].state)
 		{
 			DbgPrintf("re-connect socket ip = %s port = %d\r\n",server_ip[i],server_port[i]);
@@ -303,9 +377,20 @@ static void socket_timeout_cb(int fd, short event, void * pArg)
 		}
 		else
 		{
-			gb905_heart_beat_send();
+			#if 0
+			// 心跳机制
+			switch (i)
+			{
+				case MAIN_SOCKET:
+					gb905_heart_beat_send();
+					break;
+
+				default:
+					break;
+			}
+			#endif
 		}
-			
+	
 	}
 	
 	DbgFuncExit();
@@ -378,6 +463,8 @@ static void * fleety_socket_loop_func(void *arg)
 	
 		socket_mngr_list[i].bev = bev;
 		socket_mngr_list[i].state = 0;
+		socket_mngr_list[i].timeout = 0;
+		socket_mngr_list[i].threhold = 10;
 	}
 
 	// 创建超时事件

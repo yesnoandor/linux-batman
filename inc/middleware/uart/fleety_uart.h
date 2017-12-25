@@ -22,11 +22,14 @@ extern "C" {
 #endif
 	
 enum{
-	METER_UART,
+	METER_UART = 0,
 	TOPLIGHT_UART,
 	TSM_UART,
 	GPS_UART,
 	MCU_UART,
+	GPRS_UART,
+
+	MAX_UART_NUM,
 };
 	
 	

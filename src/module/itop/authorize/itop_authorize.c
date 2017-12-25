@@ -19,8 +19,8 @@
 #include		"middleware/socket/authorize_socket.h"
 #include		"middleware/info/imei.h"
 #include		"middleware/info/version.h"
+#include		"middleware/info/device.h"
 
-#include		"module/info/device_info.h"
 
 #include		"module/itop/itop_common.h"
 #include		"module/itop/authorize/itop_authorize.h"
@@ -88,7 +88,7 @@ unsigned char get_authorize_status(void)
 
 	DbgFuncEntry();
 
-	init_device_info();
+	//init_device_info();
 	get_device_info(&info);
 	get_imei(imei);
 

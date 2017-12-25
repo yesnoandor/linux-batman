@@ -24,22 +24,23 @@ extern "C" {
 
 #define 	__packed 				__attribute__((packed))
 
-#define		meter_uart_device		""			//"/dev/ttyAMA2"
-#define		toplight_uart_device	""			//"/dev/ttyAMA3"
-#define		tsm_uart_device			""			//"/dev/ttyACM0"
-#define		gps_uart_device			""			// "/dev/ttyACM1"
-#define		mcu_uart_device			"/dev/ttyACM4"
-
+#define		meter_uart_device		"/dev/ttyAMA2"			// "/dev/ttyAMA2"
+#define		toplight_uart_device	"/dev/ttyAMA3"			// "/dev/ttyAMA3"
+#define		tsm_uart_device			"/dev/ttyACM0"			// "/dev/ttyACM0"
+#define		gps_uart_device			"/dev/ttyACM1"			// "/dev/ttyACM1"
+#define		mcu_uart_device			"/dev/ttyACM4"			// "/dev/ttyACM4"
+#define		gprs_uart_device		"/dev/ttyUSB2"	
 
 #define		auth_server_ip_addr		"218.90.157.214"
 #define		auth_server_port		8688
-#define		main_server_ip_addr		"192.168.1.11"			//"192.168.62.34"	//"180.168.34.250"
-#define		main_server_port		10005					//10004			//5285
+#define		main_server_ip_addr		"180.168.34.250"		// "192.168.62.34"	//"180.168.34.250"
+#define		main_server_port		5606					// 10004			//5285
 #define		aux_server_ip_addr		""
 #define		aux_server_port			0
-#define		ui_server_ip_addr		"127.0.0.1"
-#define		ui_server_port			7777
+#define		ui_server_ip_addr		""
+#define		ui_server_port			0
 
+#define		DB_FILE_PATH			"/mnt/fleety/"
 
 #ifdef __cplusplus
 }

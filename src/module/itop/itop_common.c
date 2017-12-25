@@ -17,8 +17,7 @@
 #include		"common.h"
 
 #include		"middleware/socket/authorize_socket.h"
-
-#include		"module/info/device_info.h"
+#include		"middleware/info/device.h"
 
 #include		"module/itop/authorize/itop_authorize.h"
 #include		"module/itop/itop_common.h"
@@ -255,7 +254,7 @@ static void itop_parse_a_full_msg(itop_msg_t *msg)
 * @len : 临时开的接受数据buffer长度
 * @return：返回当前解析掉的数据长度
 */
-int itop_protocol_ayalyze(unsigned char * buf,int len)
+int itop_protocol_analyze(unsigned char * buf,int len)
 {
     itop_msg_t msg;
 

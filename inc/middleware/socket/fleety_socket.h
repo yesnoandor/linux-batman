@@ -25,7 +25,9 @@ extern "C" {
 enum{
 	MAIN_SOCKET,
 	AUX_SOCKET,
-	UI_SOCKET
+	UI_SOCKET,
+
+	MAX_SOCKET_NUM
 };
 
 

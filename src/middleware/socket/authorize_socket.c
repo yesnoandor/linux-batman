@@ -26,9 +26,10 @@
 
 #include	"module/itop/itop_common.h"
 #include	"module/itop/authorize/itop_authorize.h"
-#include	"module/info/device_info.h"
 
-//#define		DEBUG_Y
+#include	"middleware/info/device.h"
+
+#define		DEBUG_Y
 #include	"libs/debug.h"
 
 //----------
@@ -70,7 +71,7 @@ static void authorize_server_read_cb(struct bufferevent* bev, void* arg)
 		}
 	}
 	
-	offset = itop_protocol_ayalyze(msg,len);
+	offset = itop_protocol_analyze(msg,len);
 	evbuffer_drain(input,offset);
 
 	if(is_authorized())

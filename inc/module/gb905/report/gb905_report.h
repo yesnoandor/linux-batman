@@ -72,7 +72,9 @@ typedef union
 		unsigned lon:1;					// =0,东经;=1,西经
 		unsigned operating:1;			// =0,营运状态;=1,停运状态
 		unsigned reservation:1;			// =0,未预约;=1,预约
-		unsigned reserved:3;
+		unsigned weighting:1;			// =0,默认;=1, 空转重
+		unsigned emptying:1;			// =0,默认;=1, 重转空
+		unsigned reserved:1;
 		unsigned acc:1;					// =0,ACC 关;=1,ACC 开
 		unsigned loading:1;				// =0,空车;=1,重车
 		unsigned oil:1;					// =0,车辆油路正常;=1,车辆油路断开
@@ -95,7 +97,7 @@ typedef struct {
 	unsigned short speed;				// 速度 (1/10KM/H)
 	unsigned char direction;			// 方向 (0~178,刻度=2  度,正北为0,顺时针)
 
-	gb905_bcd_timestamp_t timestamp;	// 时间 (BCD码 YY-MM-DD-hh-mm-ss)
+	gb905_timestamp_t timestamp;		// 时间 (BCD码 YY-MM-DD-hh-mm-ss)
 }__packed report_body_t;
 
 // 位置汇报的整个消息数据格式

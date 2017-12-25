@@ -35,41 +35,41 @@ static	pthread_t	fleety_report_thread_id;
 static	pthread_mutex_t fleety_report_lock;
 static	pthread_cond_t fleety_report_cond;
 
-/*
+/**
 * @brief 	得到需要下次位置汇报的周期
 * 
+* @return 需要汇报的时间间隔(单位s)
 */
 static unsigned int report_get_period(void)
 {
-#if 0
+
 	unsigned int timeout = 1;
 
-	taxi_status_t * taxi_status;
-	params_setting_t * setting;
+	taxi_status_t taxi_status;
+	setting_params_t * setting;
 
 	DbgFuncEntry();
 
-	taxi_status = get_taxi_status();
+	taxi_get_status(&taxi_status);
 	setting = get_setting_params();
 	
-	if(0 == setting->location_report_policy)	// timer period
+	if(0 == setting->location_report_policy)	// 定时汇报策略
 	{
-		if((taxi_status->alarm_status&GB905_ALARM_EMR) == GB905_ALARM_EMR)
+		if(taxi_status.hw.flag.alarm)			// 处于报警状态
 		{
 			timeout = setting->time_report_alarm_interval;
 		}
-
-		else if(taxi_status->sleep_status)
+		else if(taxi_status.sw.flag.sleep)		// 处于休眠待机状态
 		{
 			timeout = setting->time_report_idle_interval;
 		}
-		
 		else
 		{
+			// 位置汇报方案
 			switch (setting->location_report_scheme)
 			{
-				case 0:		// acc status
-					if(taxi_status->acc_status)
+				case 0:		// 根据Acc on/off 状态汇报
+					if(taxi_status.hw.flag.acc)
 					{
 						timeout = setting->time_report_accon_interval;
 					}
@@ -79,8 +79,8 @@ static unsigned int report_get_period(void)
 					}
 					break;
 
-				case 1:		// loading status
-					if(taxi_status->loaded_status)
+				case 1:		// 根据空/   重车状态汇报
+					if(taxi_status.hw.flag.loading)
 					{
 						timeout = setting->time_report_occupied_internal;
 					}
@@ -91,10 +91,10 @@ static unsigned int report_get_period(void)
 					break;
 
 			
-				case 2:		// login + acc status
-					if(taxi_status->login_status)
+				case 2:		// 根据登陆状态+   ACC   状态汇报
+					if(taxi_status.sw.flag.login)
 					{
-						if(taxi_status->acc_status)
+						if(taxi_status.hw.flag.acc)
 						{
 							timeout = setting->time_report_accon_interval;
 						}
@@ -109,10 +109,10 @@ static unsigned int report_get_period(void)
 					}
 					break;
 
-				case 3:		// login + login status
-					if(taxi_status->login_status)
+				case 3:		// 根据登陆状态+   空/   重车状态汇报
+					if(taxi_status.sw.flag.login)
 					{
-						if(taxi_status->loaded_status)
+						if(taxi_status.hw.flag.loading)
 						{
 							timeout = setting->time_report_occupied_internal;
 						}
@@ -138,53 +138,51 @@ static unsigned int report_get_period(void)
 	else if(1 != setting->location_report_policy && 	// distance period
 			2 != setting->location_report_policy)		// timer + distance period	
 	{
-		DbgError("location report policy error!\r\n");
+		DbgError("location report policy(%d) error!\r\n",setting->location_report_policy);
 	}
 
+	DbgPrintf("report timeout = %d \r\n",timeout);
+	
 	DbgFuncExit();
 
 	return timeout;
-#endif
-
-	return 30;
 }
 
 /*
-* @brief 	得到需要下次位置汇报的距离
+* @brief 	得到需要下次位置汇报的距离间隔
 * 
+* @return 需要汇报的距离间隔(单位m)
 */
 static unsigned int report_get_distance(void)
 {
 	unsigned int distance = 0;
 
-#if 0
-	taxi_status_t * taxi_status;
-	params_setting_t * setting;
+	taxi_status_t taxi_status;
+	setting_params_t * setting;
 	
 	DbgFuncEntry();
 
+	taxi_get_status(&taxi_status);
 	setting = get_setting_params();
-	taxi_status = get_taxi_status();
 
-	if(1 == setting->location_report_policy				// distance period
-		|| 2 == setting->location_report_policy )		// timer + distance period
+	if(1 == setting->location_report_policy	||		// 定距汇报策略
+	   2 == setting->location_report_policy )		// 定时+    定距汇报策略
 	{
-		if((taxi_status->alarm_status&GB905_ALARM_EMR) == GB905_ALARM_EMR)
+		if(taxi_status.hw.flag.alarm)				// 处于报警状态
 		{
 			distance = setting->distance_report_alarm_interval;
 		}
-		
-		else if(taxi_status->sleep_status)
+		else if(taxi_status.sw.flag.sleep)			// 处于休眠待机状态
 		{
 			distance = setting->distance_report_idle_interval;
 		}
-		
 		else
 		{
+			// 位置汇报方案
 			switch (setting->location_report_scheme)
 			{
-				case 0:		// acc status
-					if(taxi_status->acc_status)
+				case 0:		// 根据Acc on/off 状态汇报
+					if(taxi_status.hw.flag.acc)
 					{							
 						distance = setting->distance_report_accon_interval;
 					}
@@ -194,8 +192,8 @@ static unsigned int report_get_distance(void)
 					}
 					break;
 
-				case 1:		// loading status
-					if(taxi_status->loaded_status)
+				case 1:		// 根据空/   重车状态汇报
+					if(taxi_status.hw.flag.loading)
 					{
 						distance = setting->distance_report_occupied_interval;
 					}
@@ -206,10 +204,10 @@ static unsigned int report_get_distance(void)
 					break;
 
 			
-				case 2:		// login + acc status
-					if(taxi_status->login_status)
+				case 2:		// 根据登陆状态+   ACC   状态汇报
+					if(taxi_status.sw.flag.login)
 					{
-						if(taxi_status->acc_status)
+						if(taxi_status.hw.flag.acc)
 						{
 							distance = setting->distance_report_accon_interval;
 						}
@@ -224,10 +222,10 @@ static unsigned int report_get_distance(void)
 					}
 					break;
 
-				case 3:		// login + loading status
-					if(taxi_status->login_status)
+				case 3:		// 根据登陆状态+   空/   重车状态汇报
+					if(taxi_status.sw.flag.login)
 					{
-						if(taxi_status->loaded_status)
+						if(taxi_status.hw.flag.loading)
 						{
 							distance = setting->distance_report_occupied_interval;
 						}
@@ -255,8 +253,10 @@ static unsigned int report_get_distance(void)
 		DbgError("location report policy error!\r\n");
 	}
 
+	DbgPrintf("report distance = %d \r\n",distance);
+	
 	DbgFuncExit();
-#endif	
+
 	return distance;
 }
 
@@ -280,16 +280,16 @@ static unsigned int report_period_treat(fleety_report_params_t * report_params)
 	timeout_threhold = report_get_period();
 	distance_threhold = report_get_distance();
 
-	if(distance_threhold)	// distance period
+	if(distance_threhold)	// 需要汇报的距离
 	{
 		report_params->distance += gps_info.speed;
 
-		if(report_params->distance >= distance_threhold)
+		if(report_params->distance >= distance_threhold)	// 
 		{
 			report_params->distance = 0;
 			gb905_report_send();
 		}		
-		else if(timeout_threhold)	// timer + distance period
+		else if(timeout_threhold)	// 定时+  定距汇报
 		{
 			report_params->elapse += 1;
 			if(report_params->elapse >= timeout_threhold)
@@ -301,7 +301,7 @@ static unsigned int report_period_treat(fleety_report_params_t * report_params)
 
 		timeout_threhold = 1;
 	}
-	else if(timeout_threhold)		// timer period
+	else if(timeout_threhold)	// 定时汇报
 	{
 		gb905_report_send();
 	}
@@ -317,7 +317,7 @@ static unsigned int report_period_treat(fleety_report_params_t * report_params)
 
 /*
 * @brief 	位置跟踪的处理
-* @param report_params	位置汇报处理需要的参数(当前时间/ 距离和累计时间/  距离)
+* @param period_params	位置汇报处理需要的参数(当前时间/ 距离和累计时间/  距离)
 *
 * @return 下次位置汇报处理的时间间隔，单位s
 */
@@ -466,7 +466,6 @@ static void * fleety_report_loop_func(void *arg)
 			timeout_threhold = report_period_treat(&report_params);
 		}
 		
-
 		DbgPrintf("timeout_threhold = 0x%x\r\n",timeout_threhold);
 
 		DbgPrintf("distance = 0x%x\r\n",report_params.distance);

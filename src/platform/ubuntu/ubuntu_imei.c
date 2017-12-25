@@ -29,7 +29,7 @@ void ubuntu_imei_simu_init(void)
 {
 	DbgFuncEntry();
 
-	set_imei(TEST_IMEI_ID);
+	set_imei(TEST_IMEI_ID,sizeof(TEST_IMEI_ID));
 
 	DbgFuncExit();
 }
