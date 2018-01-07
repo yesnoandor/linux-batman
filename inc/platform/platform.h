@@ -40,6 +40,9 @@ void platform_hardware_post_init(void);
 
 void platform_hardware_relay_output(int index,int level);
 
+void platform_system_power_off(void);
+void platform_system_reset(void);
+void platform_system_recovery(void);
 
 #ifdef __cplusplus
 }

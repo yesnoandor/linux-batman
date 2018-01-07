@@ -27,7 +27,15 @@
 #include	"module/gb905/report/gb905_report.h"
 #include	"module/gb905/report/gb905_trace.h"
 #include	"module/gb905/params/gb905_params.h"
+#include	"module/gb905/ctrl/gb905_control.h"
+#include	"module/gb905/notice/gb905_notice.h"
+#include	"module/gb905/event/gb905_event.h"
+#include	"module/gb905/question/gb905_question.h"
+#include	"module/gb905/phone_book/gb905_phone_book.h"
 #include	"module/gb905/heart_beat/gb905_heart_beat.h"
+#include	"module/gb905/transparent/gb905_transparent.h"
+#include	"module/gb905/callback/gb905_callback.h"
+#include	"module/gb905/order/gb905_order.h"
 
 
 
@@ -374,53 +382,63 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 
 		case MESSAGE_GET_PARAMS:
 			gb905_get_params_treat(msg->buf,msg->len);
-			break;	
-		
-	#if 0
-		case MESSAGE_GENERAL_DOWN_ACK:
-			gb905_common_ack_treat(msg->msg_buf,msg->msg_len);
 			break;
 
-		case MESSAGE_SET_PARAMS:
-			result = gb905_set_params_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);		
-			gb905_send_ack(header,result);
-			break;
-
-		case MESSAGE_GET_PARAMS:
-			gb905_get_params_treat(msg->msg_buf,msg->msg_len);
-			//gb905_get_params_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len,header->msg_serial_number);
-			break;
-
-		case MESSAGE_CTRL_TERMINAL:
-			result = gb905_control_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);		
+		case MESSAGE_ISU_CTRL:
+			result = gb905_control_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);		
 			gb905_send_ack(header,result);
 			break;
 
 		case MESSAGE_TEXT_NOTICE:
-			result = gb905_notice_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
+			result = gb905_notice_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
 			gb905_send_ack(header,result);
 			break;
 
 		case MESSAGE_EVENT_LIST:
-			result = gb905_eventset_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
+			result = gb905_set_event_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
 			gb905_send_ack(header,result);
+
+            //gb905_report_event_treat(5);		//demo test report_event
 			break;
-			
+
 		case MESSAGE_QUESTION:
-			result = gb905_question_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
+			result = gb905_question_issue_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
 			gb905_send_ack(header,result);
-			break;
-			
-		case MESSAGE_CALLBACK:
-			result = gb905_callback_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
-			gb905_send_ack(header,result);
-			break;
-			
+
+            //gb905_question_ack_treat(12,3);		//demo test question_ack
+            break;
+
 		case MESSAGE_PHONE_BOOK:
-			result = gb905_set_phone_book_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
+			result = gb905_set_phone_book_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
 			gb905_send_ack(header,result);
 			break;
+		
+		case MESSAGE_CALLBACK:
+			result = gb905_callback_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			gb905_send_ack(header,result);
+			break;
+
+		case MESSAGE_PERIPHERY_DOWN:
+			gb905_transparent_download_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			break;
+		
+		case MESSAGE_ORDER_INFO:
+			result = gb905_order_briefing_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			gb905_send_ack(header, result);
+			break;
 			
+		case MESSAGE_ORDER_GRAB_ACK:
+			result = gb905_order_detials_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			gb905_send_ack(header, result);
+			break;
+		
+		case MESSAGE_ORDER_CANCEL_DOWN:
+			result = gb905_order_cancel_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			gb905_send_ack(header, result);
+			break;
+
+			
+		#if 0
 		case MESSAGE_REMOTE_CTRL:
 			result = gb905_remote_control_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
 			gb905_send_ack(header,result);
@@ -458,20 +476,9 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 			break;
 
 
-		case MESSAGE_ORDER_INFO:
-			result = gb905_order_brief_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
-			gb905_send_ack(header, result);
-			break;
 
-		case MESSAGE_ORDER_GRAB_ACK:
-			result = gb905_order_detail_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
-			gb905_send_ack(header, result);
-			break;
 
-		case MESSAGE_ORDER_CANCEL_DOWN:
-			result = gb905_order_cancel_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
-			gb905_send_ack(header, result);
-			break;
+
 
 		case MESSAGE_CONFIRM_ALARM:
 			result = gb905_confirm_alarm_treat();
@@ -483,11 +490,7 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 			gb905_send_ack(header, result);
 			break;
 
-		case MESSAGE_PERIPHERY_DOWN:
-			result = gb905_DownPeripheryMsg_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
-			gb905_send_ack(header,result);
-			break;
-			
+
 		case MESSAGE_DEVICE_INSPECTION:
 			result = gb905_device_inspection_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
 			break;
@@ -508,7 +511,7 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 		case MESSAGE_OBD_TRANSPARENT:
 			gb905_obd_transparent_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
 			break;
-	#endif
+		#endif
 		
 		default:
 			break;
@@ -675,7 +678,7 @@ void gb905_build_header(gb905_header_t * header, unsigned short msg_id, unsigned
 	header->msg_len = EndianReverse16(msg_len);
 
 	header->msg_vendor_type = 0x10;
-	header->uuid_device_id.vendor_id = 0x02;
+	header->uuid_device_id.vendor_id = GB905_FLEETY_VENDOR_ID;
 	header->uuid_device_id.product_id = 0x00;
 
 	mtd_id = info.mtd_id % 1000000;

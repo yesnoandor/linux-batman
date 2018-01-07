@@ -29,6 +29,8 @@
 #include	"module/gb905_peri/tsm/gb905_tsm.h"
 #include	"module/gb905_peri/meter/gb905_meter.h"
 
+#include	"module/gb905/transparent/gb905_transparent.h"
+
 #include	"middleware/info/status.h"
 #include	"middleware/info/setting.h"
 #include	"middleware/info/meter.h"
@@ -634,6 +636,9 @@ static int gb905_meter_parse_protocol(buff_mgr_t * msg)
 		case METER_COMMAND_QUERY_STATE:
 			gb905_meter_parse_state(buf,len);
 			//inspection_meter_state(meter_data,meter_data_len);
+
+			// demo test transparent download/upload
+			// gb905_transparent_upload_treat(GB905_DEVICE_METER,GB905_VENDOR_ID,METER_COMMAND_QUERY_STATE,buf,len);	
 			break;
 
 		case METER_COMMAND_QUERY_PARAMETER:
@@ -900,3 +905,67 @@ int gb905_meter_protocol_ayalyze(unsigned char * buf,int len)
 	DbgFuncExit();
 }
 
+/** 
+* @brief 	计价器数据透传处理
+* @param buf	 	存放需要透传的数据(命令字2byte + 数据区)
+* @param len		存放需要透传的数据长度+  命令字2字节
+*
+*/
+void gb905_meter_transparent(unsigned char *msg_buf,unsigned short msg_len)
+{
+	unsigned char *data_buf;
+	unsigned short data_len;
+	unsigned char *send_buf;
+	unsigned char send_len;
+	
+	gb905_peri_header_t* meter_header;
+	gb905_peri_tail_t* meter_tail;
+
+	unsigned short *cmd_prt;
+	unsigned char xor;
+	
+	DbgFuncEntry();
+
+	cmd_prt = (unsigned short *)msg_buf;
+	
+	DbgPrintf("meter transparent cmd is 0x%04x\r\n",*cmd_prt);
+
+	msg_buf = msg_buf + sizeof(unsigned short);// 跳过命令字
+	data_len = msg_len-2;		// 2:sizeof cmd
+	
+	send_len = sizeof(gb905_peri_header_t)+sizeof(gb905_peri_tail_t)+data_len;
+	send_buf = (unsigned char *)malloc(send_len);
+	if(!send_buf)
+	{
+		DbgError("meter transparent memory malloc failed!\r\n");
+		return;
+	}
+
+	meter_header = (gb905_peri_header_t*)send_buf;
+	gb905_meter_build_header(meter_header,*cmd_prt,data_len + sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
+
+	data_buf = send_buf+sizeof(gb905_peri_header_t);
+	memcpy((void*)data_buf,(void*)msg_buf,data_len);
+	
+	meter_tail = (gb905_peri_tail_t *)(send_buf+sizeof(gb905_peri_header_t)+data_len);
+	xor = xor8_computer(send_buf + offsetof(gb905_peri_header_t,len),data_len + sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,len));
+	gb905_peri_build_tail(meter_tail,xor);
+    
+	#if 1
+	{
+		int i;
+		DbgPrintf("meter transparent data ::\r\n");
+		for(i=0;i<send_len;i++)
+		{
+			DbgPrintf("0x%2x \r\n",send_buf[i]);
+		}
+		DbgPrintf("\r\n");
+	}
+	#endif
+
+	fleety_uart_send(METER_UART,send_buf,send_len);
+	
+	free(send_buf);
+	
+	DbgFuncExit();
+}

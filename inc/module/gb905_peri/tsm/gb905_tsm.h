@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+#include	"module/gb905_peri/gb905_peri_common.h"
+
 enum{
 	TSM_BPS2400 = 0,
 	TSM_BPS4800,

@@ -31,6 +31,14 @@ extern "C" {
 #define		mcu_uart_device			"/dev/ttyACM4"			// "/dev/ttyACM4"
 #define		gprs_uart_device		"/dev/ttyUSB2"	
 
+#define		meter_uart_bps			B9600
+#define		toplight_uart_bps		B9600
+#define		tsm_uart_bps			B9600
+#define		gps_uart_bps			B9600
+#define		mcu_uart_bps			B115200
+#define		gprs_uart_bps			B9600
+
+
 #define		auth_server_ip_addr		"218.90.157.214"
 #define		auth_server_port		8688
 #define		main_server_ip_addr		"180.168.34.250"		// "192.168.62.34"	//"180.168.34.250"

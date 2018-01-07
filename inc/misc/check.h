@@ -28,6 +28,9 @@ unsigned char xor8_computer(unsigned char * p_data, unsigned int len);
 unsigned char sum8_compute(unsigned char * p_data, unsigned int len);
 unsigned char sum16_compute(unsigned char * p_data, unsigned int len);
 
+int one_bit_count(unsigned int n);
+int zero_bit_count(unsigned int n);
+
 
 bool is_folder_exist(const char* path);
 bool is_file_exist(const char* path);

@@ -22,7 +22,7 @@
 
 #include	"libs/nmea.h"
 
-#define		DEBUG_Y
+//#define		DEBUG_Y
 #include	"libs/debug.h"
 
 

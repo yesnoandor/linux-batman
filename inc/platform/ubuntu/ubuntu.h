@@ -25,17 +25,24 @@ extern "C" {
 #include	"platform/ubuntu/ubuntu_keys.h"
 #include	"platform/ubuntu/ubuntu_relay.h"
 #include	"platform/ubuntu/ubuntu_imei.h"
+#include	"platform/ubuntu/ubuntu_system.h"
 
 
 #define 	__packed 				__attribute__((packed))
 
 #define		meter_uart_device		""		//"/dev/ttyUSB0"
-#define		toplight_uart_device	""					//"/dev/ttyUSB1"
+#define		toplight_uart_device	""		//"/dev/ttyUSB1"
 #define		tsm_uart_device			""
 #define		gps_uart_device			""
 #define		mcu_uart_device			""
 #define		gprs_uart_device		""
 
+#define		meter_uart_bps			B9600
+#define		toplight_uart_bps		B9600
+#define		tsm_uart_bps			B9600
+#define		gps_uart_bps			B9600
+#define		mcu_uart_bps			B115200
+#define		gprs_uart_bps			B9600
 
 // "180.168.34.250"	5606	:  ÍôÑóµÄÍâÍø¶Ë¿Ú	
 

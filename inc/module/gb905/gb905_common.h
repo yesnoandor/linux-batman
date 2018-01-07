@@ -27,7 +27,7 @@ extern "C" {
 #define		MESSAGE_GENERAL_UP_ACK				0x0001
 #define		MESSAGE_HEART_BEAT					0x0002
 #define		MESSAGE_GET_PARAMS_ACK				0x0104
-#define		MESSAGE_UPDATE_RESULT				0x0105
+#define		MESSAGE_UPDATE_RESULT_ACK			0x0105		// ISU  升级结果报告(Detail in 10.3.5.8)
 #define		MESSAGE_LOCATION_REPORT				0x0200
 #define		MESSAGE_GET_LOCATION_ACK			0x0201
 #define		MESSAGE_LOCATION_TRACE				0x0202
@@ -61,7 +61,7 @@ extern "C" {
 #define		MESSAGE_GENERAL_DOWN_ACK			0x8001
 #define		MESSAGE_SET_PARAMS					0x8103
 #define		MESSAGE_GET_PARAMS					0x8104
-#define		MESSAGE_CTRL_TERMINAL				0x8105
+#define		MESSAGE_ISU_CTRL					0x8105		// ISU 控制(Detail in 10.3.5.7)
 #define		MESSAGE_GET_LOCATION				0x8201
 #define		MESSAGE_TRACE_LOCATION				0x8202
 #define		MESSAGE_TEXT_NOTICE					0x8300
@@ -113,6 +113,33 @@ enum{
 	GB905_RESULT_OK = 0,
 	GB905_RESULT_FAIL,
 	GB905_RESULT_UNKNOWN,
+};
+
+/*
+* 905国标厂商ID
+*/
+#define	GB905_FLEETY_VENDOR_ID		0x02			//0x02:上海飞田
+
+
+/*
+* 905国标设备ID
+*/
+enum{
+	GB905_DEVICE_MCU = 0,					//终端
+	GB905_DEVICE_GPRS,						//通信模块
+	GB905_DEVICE_METER,						//计价器
+	GB905_DEVICE_TSM,						//安全模块
+	GB905_DEVICE_LED,						//LED显示屏
+	GB905_DEVICE_TOPLIGHT,					//顶灯
+	GB905_DEVICE_EVAL_FRONT,				//服务评价器(前排)
+	GB905_DEVICE_CAMERA,					//摄像装置
+	GB905_DEVICE_GPS,						//定位模块
+	GB905_DEVICE_LCD,						//液晶(LCD)多媒体屏
+	GB905_DEVICE_ISU,						//ISU人机交互设备
+	GB905_DEVICE_EVAL_BACK,					//服务评价器(后排)
+	
+	GB905_DEVICE_RFU,						//预留
+
 };
 
 /*

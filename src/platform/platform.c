@@ -16,10 +16,13 @@
 ********************************************************************************************************/
 #include	"common.h"
 
+#include	"platform/hw/hw_system.h"
+
 #include	"module/gb905_ex/mcu/mcu_common.h"
+#include	"module/gb905_ex/ui/ui_common.h"
+
 #include	"module/gps/gps_nmea.h"
 #include	"module/gprs/gprs_at_cmd.h"
-
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -42,6 +45,7 @@ void platform_hardware_init(void)
 
 
 #if defined (PLATFORM_HW)
+	ui_protocol_init();
 	mcu_protocol_init();
 	gps_nmea_init();
 	gprs_at_protocol_init();
@@ -85,6 +89,7 @@ void platform_hardware_relay_output(int index,int level)
 #endif
 
 #if defined (PLATFORM_QCOM)
+
 #endif
 
 
@@ -99,4 +104,74 @@ void platform_hardware_relay_output(int index,int level)
 }
 
 
+/** 
+* @brief 	硬件平台的关机
+*
+*/
+void platform_system_power_off(void)
+{
+#if defined (PLATFORM_UBUNTU)
+	ubuntu_system_power_off();
+#endif
 
+#if defined (PLATFORM_QCOM)
+	qcom_system_power_off();
+#endif
+
+
+#if defined (PLATFORM_HW)
+	hw_system_power_off();
+#endif 
+
+#if defined (PLATFORM_MTK)
+
+#endif	
+}
+
+/** 
+* @brief 	硬件平台的重启
+*
+*/
+void platform_system_reset(void)
+{
+#if defined (PLATFORM_UBUNTU)
+	ubuntu_system_reset();
+#endif
+
+#if defined (PLATFORM_QCOM)
+	qcom_system_reset();
+#endif
+
+
+#if defined (PLATFORM_HW)
+	hw_system_reset();
+#endif 
+
+#if defined (PLATFORM_MTK)
+
+#endif	
+}
+
+/** 
+* @brief 	硬件平台的恢复出厂设置
+*
+*/
+void platform_system_recovery(void)
+{
+#if defined (PLATFORM_UBUNTU)
+	ubuntu_system_recovery();
+#endif
+
+#if defined (PLATFORM_QCOM)
+	qcom_system_recovery();
+#endif
+
+
+#if defined (PLATFORM_HW)
+	hw_system_recovery();
+#endif 
+
+#if defined (PLATFORM_MTK)
+
+#endif	
+}

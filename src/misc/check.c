@@ -138,3 +138,34 @@ bool is_file_exist(const char* path)
     return !access(path, F_OK);
 }
 
+/**
+* @brief 		得到一个值中1    的位数
+* @param 	n		值
+* 
+* @return		返还'1'   的计数
+*/
+int one_bit_count(unsigned int n)
+{
+	unsigned int c =0;
+
+	for (c =0; n; ++c)
+	{
+		n &= (n -1) ; // 清除最低位的1
+	}
+
+	return c ;
+}
+
+/**
+* @brief 		得到一个值中0    的位数
+* @param 	n		值
+* 
+* @return		返还'0'   的计数
+*/
+int zero_bit_count(unsigned int n)
+{
+	unsigned int c = one_bit_count(n);
+
+	return sizeof(unsigned int) - c ;
+}
+

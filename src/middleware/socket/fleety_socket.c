@@ -173,6 +173,7 @@ static void cmd_msg_cb(int fd, short events, void* arg)
 // 接收到服务器网络输入的处理回调函数
 static void main_server_read_cb(struct bufferevent* bev, void* arg)  
 {
+	long index;
 	unsigned char msg[1024];
 	int len =0;
 	int offset=0;
@@ -181,6 +182,9 @@ static void main_server_read_cb(struct bufferevent* bev, void* arg)
 	DbgFuncEntry();
 
 	//len = bufferevent_read(bev, msg, sizeof(msg));
+
+	index = (long)arg;
+	DbgPrintf("index = %d\r\n",index);
 
 	input = bufferevent_get_input(bev);
 	len = evbuffer_copyout(input, msg, sizeof(msg));
@@ -197,7 +201,7 @@ static void main_server_read_cb(struct bufferevent* bev, void* arg)
 	offset = gb905_protocol_ayalyze(msg,len);
 	evbuffer_drain(input,offset);
 
-	socket_mngr_list[MAIN_SOCKET].timeout = 0;
+	socket_mngr_list[index].timeout = 0;
 
 	DbgPrintf("offset = %d\r\n",offset);
 
@@ -220,7 +224,14 @@ static void main_server_event_cb(struct bufferevent *bev, short event, void *arg
 	if( BEV_EVENT_CONNECTED == event )
 	{
         bufferevent_enable( bev, EV_READ | EV_PERSIST);
+	
+		socket_mngr_list[index].bev = bev;
+		socket_mngr_list[index].timeout = 0;
+		socket_mngr_list[index].threhold = 10;
+		
         socket_mngr_list[index].state = 1;
+
+		DbgGood("main server connect success!\r\n");
     }
 	else
 	{
@@ -241,16 +252,78 @@ static void main_server_event_cb(struct bufferevent *bev, short event, void *arg
 
 static void aux_server_read_cb(struct bufferevent* bev, void* arg)  
 {
+	long index;
+	unsigned char msg[1024];
+	int len =0;
+	int offset=0;
+	struct evbuffer *input;
+
 	DbgFuncEntry();
 
-	socket_mngr_list[AUX_SOCKET].timeout = 0;
+	//len = bufferevent_read(bev, msg, sizeof(msg));
+
+	index = (long)arg;
+	DbgPrintf("index = %d\r\n",index);
+
+	input = bufferevent_get_input(bev);
+	len = evbuffer_copyout(input, msg, sizeof(msg));
+
+	{
+		int i;
+		DbgPrintf("len = %d\r\n",len);
+		for(i =0;i<len;i++)
+		{
+			DbgPrintf("msg[%d] = 0x%x\r\n",i,msg[i]);
+		}
+	}
 	
-	DbgFuncExit();
+	offset = gb905_protocol_ayalyze(msg,len);
+	evbuffer_drain(input,offset);
+
+	socket_mngr_list[index].timeout = 0;
+
+	DbgPrintf("offset = %d\r\n",offset);
+
+	DbgFuncExit(); 
 }
 
 static void aux_server_event_cb(struct bufferevent *bev, short event, void *arg)  
 {
+	long index;
+		
 	DbgFuncEntry();
+	
+	index = (long)arg;
+	
+	DbgPrintf("index = %d\r\n",index);
+		
+	// 成功连接 状态变更
+	if( BEV_EVENT_CONNECTED == event )
+	{
+		bufferevent_enable( bev, EV_READ | EV_PERSIST);
+
+		socket_mngr_list[index].bev = bev;
+		socket_mngr_list[index].timeout = 0;
+		socket_mngr_list[index].threhold = 10;
+		
+		socket_mngr_list[index].state = 1;
+
+		DbgGood("aux server connect success!\r\n");
+	}
+	else
+	{
+		if (event & BEV_EVENT_EOF)
+			DbgPrintf("connection closed\r\n");
+		else if (event & BEV_EVENT_ERROR)
+			DbgPrintf("some other error\n");
+	
+		// 自动close 套接字和free  读写缓冲区  
+		bufferevent_free(bev);
+	
+		socket_mngr_list[index].bev = NULL;
+		socket_mngr_list[index].state = 0;
+	}
+		
 	DbgFuncExit();
 }
 
@@ -280,7 +353,7 @@ static void ui_server_read_cb(struct bufferevent* bev, void* arg)
 	offset = ui_protocol_ayalyze(msg,len);
 	evbuffer_drain(input,offset);
 	
-	socket_mngr_list[MAIN_SOCKET].timeout = 0;
+	socket_mngr_list[UI_SOCKET].timeout = 0;
 	
 	DbgPrintf("offset = %d\r\n",offset);
 	
@@ -301,7 +374,14 @@ static void ui_server_event_cb(struct bufferevent *bev, short event, void *arg)
 	if( BEV_EVENT_CONNECTED == event )
 	{
         bufferevent_enable( bev, EV_READ | EV_PERSIST);
+
+		socket_mngr_list[index].bev = bev;
+		socket_mngr_list[index].timeout = 0;
+		socket_mngr_list[index].threhold = 10;
+		
         socket_mngr_list[index].state = 1;
+
+		DbgGood("ui server connect success!\r\n");
     }
 	else
 	{
@@ -310,7 +390,7 @@ static void ui_server_event_cb(struct bufferevent *bev, short event, void *arg)
 		else if (event & BEV_EVENT_ERROR)
 			DbgPrintf("some other error\n");
 
-		// 自动close 套接字和free  读写缓冲区  
+		// 自动close  套接字和free  读写缓冲区  
 		bufferevent_free(bev);
 
 		socket_mngr_list[index].bev = NULL;
@@ -460,11 +540,6 @@ static void * fleety_socket_loop_func(void *arg)
 			DbgError("connect to server error(ip = %s,port = %d) failed!\r\n",server_ip[i],server_port[i]); 
 			continue;
 		}
-	
-		socket_mngr_list[i].bev = bev;
-		socket_mngr_list[i].state = 0;
-		socket_mngr_list[i].timeout = 0;
-		socket_mngr_list[i].threhold = 10;
 	}
 
 	// 创建超时事件

@@ -254,6 +254,7 @@ bool gb905_meter_open_ack(void);
 
 int gb905_meter_protocol_ayalyze(unsigned char * buf,int len);
 
+void gb905_meter_transparent(unsigned char *msg_buf,unsigned short msg_len);
 
 #ifdef __cplusplus
 }

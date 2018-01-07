@@ -71,25 +71,26 @@ static char * uart_device[] =
 };
 
 
+
 static fleety_uart_params_t termios_params[] =
 {
 	{
-		B9600,8,1,'N',0,			// meter params
+		meter_uart_bps,8,1,'N',0,		// meter params
 	},
 	{
-		B9600,8,1,'N',0,			// toplight params
+		toplight_uart_bps,8,1,'N',0,	// toplight params
 	},
 	{
-		B9600,8,1,'N',0,			// tsm params
+		tsm_uart_bps,8,1,'N',0,			// tsm params
 	},
 	{
-		B4800,8,1,'N',0,			// gps params
+		gps_uart_bps,8,1,'N',0,			// gps params
 	},
 	{
-		B115200,8,1,'N',0,			// stm32 params
+		mcu_uart_bps,8,1,'N',0,			// stm32 params
 	},
 	{
-		B9600,8,1,'N',0,			// gprs params
+		gprs_uart_bps,8,1,'N',0,			// gprs params
 	},
 };
 

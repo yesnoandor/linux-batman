@@ -69,6 +69,11 @@ void gb905_heart_beat_send(void)
 	DbgFuncExit();
 }
 
+
+/** 
+* @brief 	国标心跳超时的处理
+*
+*/
 void gb905_heart_beat_treat(void)
 {
 	if(gb905_heart_beat_count > GB905_HEART_BEAT_THREHOLD)
