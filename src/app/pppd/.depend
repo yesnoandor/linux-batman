@@ -1,0 +1,11 @@
+/home/wenyu/apps/linux-batman/src/app/pppd/fleety_pppd.o: fleety_pppd.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_keys.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_relay.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_imei.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_system.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/db/file/db_file_path.h \
+ /home/wenyu/apps/linux-batman/inc/app/pppd/fleety_pppd.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

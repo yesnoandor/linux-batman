@@ -1,0 +1,21 @@
+/home/wenyu/apps/linux-batman/src/app/av/fleety_audio.o: fleety_audio.c
+/home/wenyu/apps/linux-batman/src/app/av/fleety_photo.o: fleety_photo.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_keys.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_relay.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_imei.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_system.h \
+ /home/wenyu/apps/linux-batman/inc/libs/sqlite3/sqlite3.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/gb905_common.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/av/gb905_photo.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/av.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/event/export/fleety_export.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/db/file/db_file_path.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/db/sqlite3/photo_sqlite3.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/status.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/report/gb905_report.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform_av.h \
+ /home/wenyu/apps/linux-batman/inc/app/av/fleety_photo.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

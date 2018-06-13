@@ -22,31 +22,49 @@
 extern "C" {
 #endif
 
+#define		PLATFORM				"qcom"
+#define		PRODUCT					"M722"
 
-#define		meter_uart_device		"/dev/ttyS0"
-#define		toplight_uart_device	"/dev/ttyS1"
-#define		tsm_uart_device			"/dev/ttyS1"
-#define		gps_uart_device			""
-#define		gprs_uart_device		""
-#define		mcu_uart_device			""
 
-#define		meter_uart_bps			B9600
-#define		toplight_uart_bps		B9600
-#define		tsm_uart_bps			B9600
-#define		gps_uart_bps			B9600
-#define		mcu_uart_bps			B115200
-#define		gprs_uart_bps			B9600
+#define		METER_UART_DEV_NAME			"/dev/ttyACM2"			//"/dev/ttyHSL1"
+#define		TOPLIGHT_UART_DEV_NAME		"/dev/ttyHSL2"
+#define		TSM_UART_DEV_NAME			"/dev/ttyACM1"
+#define		GPS_UART_DEV_NAME			""
+#define		MCU_UART_DEV_NAME			"/dev/ttyACM4"
+#define		GPRS_UART_DEV_NAME			""
+#define		INSPECT_UART_DEV_NAME		"/dev/ttyACM2"
 
-#define		auth_server_ip_addr		"218.90.157.214"
-#define		auth_server_port		8688
-#define		main_server_ip_addr		"192.168.1.11"			//"192.168.62.34"	//"180.168.34.250"
-#define		main_server_port		10005					//10004			//5285
-#define		aux_server_ip_addr		""
-#define		aux_server_port			0
-#define		ui_server_ip_addr		"127.0.0.1"
-#define		ui_server_port			7777
+#define		METER_UART_DEV_BPS			B9600
+#define		TOPLIGHT_UART_DEV_BPS		B9600
+#define		TSM_UART_DEV_BPS			B9600
+#define		GPS_UART_DEV_BPS			B9600
+#define		GPRS_UART_DEV_BPS			B9600
+#define		MCU_UART_DEV_BPS			B115200
+#define		INSPECT_UART_DEV_BPS		B115200
+
+
+#define		AUTH_SERVER_IP_ADDR		"218.90.157.214"
+#define		AUTH_SERVER_PORT		8688
+#define		MAIN_SERVER_IP_ADDR		"180.168.34.250"		//"192.168.62.34"	//"180.168.34.250"
+#define		MAIN_SERVER_PORT		5285					//10004			//5285
+#define		AUX_SERVER_IP_ADDR		""
+#define		AUX_SERVER_PORT			0
+#define		UI_SERVER_IP_ADDR		"127.0.0.1"
+#define		UI_SERVER_PORT			8090
 
 #define		DB_FILE_PATH			""
+
+#define 	EXPORT_PATH				""
+#define		PHOTO_PATH				""
+
+#define		UDISK_PATH				""
+#define		STATUS_PATH				""
+
+#define		METER_VENDOR_ID			0x13		// 溧阳03；正尚13
+#define		TOPLIGHT_VENDOR_ID		0x00		// 0x10		//debug test 0x02
+#define		TSM_VENDOR_ID			0x05		//金坛03；福州05；测试01
+
+#define		DEFAULT_HW_VERSION		"570LL"
 
 #ifdef __cplusplus
 }

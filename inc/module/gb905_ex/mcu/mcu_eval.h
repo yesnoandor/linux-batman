@@ -23,6 +23,14 @@
 extern "C" {
 #endif
 
+enum{
+	EVAL_NONE,
+	EVAL_OK,
+	EVAL_SOSO,
+	EVAL_BAD,
+	EVAL_COMPLAINT,
+};
+
 unsigned char mcu_get_evaluate_treat(unsigned char *buf,int len);
 
 

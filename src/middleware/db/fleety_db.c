@@ -18,6 +18,8 @@
 
 #include	"middleware/info/device.h"
 #include	"middleware/info/setting.h"
+#include	"middleware/info/product.h"
+
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -32,4 +34,8 @@ void fleety_db_init(void)
 	init_device_info();
 
 	init_setting_params();
+
+	init_product_params();
+
+	init_socket_params();
 }

@@ -21,6 +21,7 @@
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/question/gb905_question.h"
+#include	"module/gb905_ex/ui/ui_question.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -197,6 +198,7 @@ unsigned char gb905_question_issue_treat(unsigned char *buf,int len)
 		answer_num++;
     }
 
+	ui_send_question_info(buf,len);
 	gb905_debug_question();
   
     DbgFuncExit();

@@ -23,6 +23,8 @@
 #include	"event2/util.h"
 #include	"event2/thread.h"
 
+#include	"misc/misc.h"
+
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/heart_beat/gb905_heart_beat.h"
 #include	"module/gb905_ex/ui/ui_common.h"
@@ -31,17 +33,10 @@
 #include	"middleware/socket/fleety_socket.h"
 
 
-#define		DEBUG_Y
+//#define		DEBUG_Y
 #include	"libs/debug.h"
 
 //----------
-
-
-
-//#define		MAX_SOCKET_NUM			3
-
-
-
 
 typedef	void(*PTR_SERVER_MSG_CB)(struct bufferevent*,void*);
 typedef	void(*PTR_SERVER_EVENT_CB)(struct bufferevent *, short, void *);
@@ -58,19 +53,23 @@ static	pthread_t		fleety_socket_thread_id;
 static	pthread_cond_t	fleety_socket_cond;
 static	pthread_mutex_t fleety_socket_lock;
 
+static char main_server_ip[32];
+static char aux_server_ip[32];
+static char ui_server_ip[32];
+
 static char * server_ip[] = 
 {
-	main_server_ip_addr,
-	aux_server_ip_addr,
-	ui_server_ip_addr
+	main_server_ip,
+	aux_server_ip,
+	ui_server_ip
 };
 
 
 static short server_port[] =
 {
-	main_server_port,
-	aux_server_port,
-	ui_server_port
+	MAIN_SERVER_PORT,
+	AUX_SERVER_PORT,
+	UI_SERVER_PORT
 };
 	
 
@@ -170,6 +169,22 @@ static void cmd_msg_cb(int fd, short events, void* arg)
 }
 */
 
+static void debug_server_ip(void)
+{
+	int i;
+	
+	DbgFuncEntry();
+
+	for(i=0;i<ARRAY_SIZE(server_ip);i++)
+	{
+		DbgPrintf("server_ip[%d] = %s\r\n",server_ip[i]);
+		DbgPrintf("server_port[%d] = %d\r\n",server_port[i]);
+	}
+	
+	DbgFuncExit();
+}
+
+
 // 接收到服务器网络输入的处理回调函数
 static void main_server_read_cb(struct bufferevent* bev, void* arg)  
 {
@@ -224,13 +239,13 @@ static void main_server_event_cb(struct bufferevent *bev, short event, void *arg
 	if( BEV_EVENT_CONNECTED == event )
 	{
         bufferevent_enable( bev, EV_READ | EV_PERSIST);
-	
+		
 		socket_mngr_list[index].bev = bev;
 		socket_mngr_list[index].timeout = 0;
 		socket_mngr_list[index].threhold = 10;
 		
         socket_mngr_list[index].state = 1;
-
+		
 		DbgGood("main server connect success!\r\n");
     }
 	else
@@ -446,13 +461,13 @@ static void socket_timeout_cb(int fd, short event, void * pArg)
 			struct sockaddr_in tSockAddr;
 			memset(&tSockAddr, 0, sizeof(tSockAddr));
 			tSockAddr.sin_family = AF_INET;
-			tSockAddr.sin_addr.s_addr = inet_addr(server_ip[0]);
-			tSockAddr.sin_port = htons(server_port[0]);
+			tSockAddr.sin_addr.s_addr = inet_addr(server_ip[i]);
+			tSockAddr.sin_port = htons(server_port[i]);
 		
 			// 连接服务器
 			if( bufferevent_socket_connect(bev, (struct sockaddr*)&tSockAddr, sizeof(tSockAddr)) < 0)
 			{
-				DbgError("connect to server error(ip = %s,port = %d) failed!\r\n",server_ip[0],server_port[0]); 
+				DbgError("connect to server error(ip = %s,port = %d) failed!\r\n",server_ip[i],server_port[i]); 
 			}
 		}
 		else
@@ -655,4 +670,25 @@ void fleety_pipe_send(void)
 
 	DbgFuncExit();
 }
+
+
+void fleety_modify_server_ip(unsigned char index,char * ip,unsigned int port)
+{
+	DbgFuncEntry();
+
+	if(index < ARRAY_SIZE(server_ip))
+	{
+		strcpy(server_ip[index],ip);
+		server_port[index] = port;
+	}
+	else
+	{
+		DbgError("error server ip index(%d)\r\n",index);
+	}
+
+	debug_server_ip();
+	
+	DbgFuncExit();
+}
+
 

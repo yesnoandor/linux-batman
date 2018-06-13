@@ -25,7 +25,7 @@
 #include		"module/itop/itop_common.h"
 #include		"module/itop/authorize/itop_authorize.h"
 
-#define			DEBUG_Y
+//#define			DEBUG_Y
 #include		"libs/debug.h"
 
 #define 		AUTH_STATE				0x40

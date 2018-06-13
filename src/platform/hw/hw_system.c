@@ -40,6 +40,8 @@ void hw_system_reset(void)
 {
 	DbgFuncEntry();
 
+    system("reboot");
+    
 	DbgFuncExit();
 }
 
@@ -50,6 +52,25 @@ void hw_system_reset(void)
 void hw_system_recovery(void)
 {
 	DbgFuncEntry();
+
+	DbgFuncExit();
+}
+
+/*
+*  @brief 		在hi3520D    平台上系统加载U    盘
+* 
+*/
+void hw_system_mount_disk(void)
+{
+	char cmd[MAX_CMD_CHARS_SIZE];
+	
+	DbgFuncEntry();
+
+	//snprintf(cmd,80,"mount -t vfat /dev/disk1 /mnt/udisk");
+	snprintf(cmd,MAX_CMD_CHARS_SIZE,"mount -o -rw -t vfat /dev/sdc1 /mnt/udisk");
+	DbgPrintf("cmd = %s\r\n",cmd);
+
+	system(cmd);			// popen()/fgets()
 
 	DbgFuncExit();
 }

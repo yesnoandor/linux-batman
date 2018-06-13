@@ -11,13 +11,13 @@
 /* #undef DISABLE_THREAD_SUPPORT */
 
 /* Define to 1 if you have the `accept4' function. */
-/* #undef HAVE_ACCEPT4 */
+#define HAVE_ACCEPT4 1
 
 /* Define to 1 if you have the `arc4random' function. */
-#define HAVE_ARC4RANDOM 1
+/* #undef HAVE_ARC4RANDOM */
 
 /* Define to 1 if you have the `arc4random_buf' function. */
-#define HAVE_ARC4RANDOM_BUF 1
+/* #undef HAVE_ARC4RANDOM_BUF */
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #define HAVE_ARPA_INET_H 1
@@ -27,19 +27,19 @@
 
 /* Define to 1 if you have the declaration of `CTL_KERN', and to 0 if you
    don't. */
-/* #undef HAVE_DECL_CTL_KERN */
+#define HAVE_DECL_CTL_KERN 1
 
 /* Define to 1 if you have the declaration of `KERN_ARND', and to 0 if you
    don't. */
-/* #undef HAVE_DECL_KERN_ARND */
+#define HAVE_DECL_KERN_ARND 0
 
 /* Define to 1 if you have the declaration of `KERN_RANDOM', and to 0 if you
    don't. */
-/* #undef HAVE_DECL_KERN_RANDOM */
+#define HAVE_DECL_KERN_RANDOM 1
 
 /* Define to 1 if you have the declaration of `RANDOM_UUID', and to 0 if you
    don't. */
-/* #undef HAVE_DECL_RANDOM_UUID */
+#define HAVE_DECL_RANDOM_UUID 1
 
 /* Define if /dev/poll is available */
 /* #undef HAVE_DEVPOLL */
@@ -51,7 +51,7 @@
 #define HAVE_EPOLL 1
 
 /* Define to 1 if you have the `epoll_create1' function. */
-/* #undef HAVE_EPOLL_CREATE1 */
+#define HAVE_EPOLL_CREATE1 1
 
 /* Define to 1 if you have the `epoll_ctl' function. */
 #define HAVE_EPOLL_CTL 1
@@ -60,7 +60,7 @@
 #define HAVE_ERRNO_H 1
 
 /* Define to 1 if you have ERR_remove_thread_stat(). */
-/* #undef HAVE_ERR_REMOVE_THREAD_STATE */
+#define HAVE_ERR_REMOVE_THREAD_STATE 1
 
 /* Define to 1 if you have the `eventfd' function. */
 #define HAVE_EVENTFD 1
@@ -75,7 +75,7 @@
 #define HAVE_FCNTL_H 1
 
 /* Define to 1 if the system has the type `fd_mask'. */
-/* #undef HAVE_FD_MASK */
+#define HAVE_FD_MASK 1
 
 /* Do we have getaddrinfo()? */
 #define HAVE_GETADDRINFO 1
@@ -99,7 +99,7 @@
 /* #undef HAVE_GETHOSTBYNAME_R_6_ARG */
 
 /* Define to 1 if you have the `getifaddrs' function. */
-/* #undef HAVE_GETIFADDRS */
+#define HAVE_GETIFADDRS 1
 
 /* Define to 1 if you have the `getnameinfo' function. */
 #define HAVE_GETNAMEINFO 1
@@ -114,7 +114,7 @@
 #define HAVE_GETTIMEOFDAY 1
 
 /* Define to 1 if you have the <ifaddrs.h> header file. */
-/* #undef HAVE_IFADDRS_H */
+#define HAVE_IFADDRS_H 1
 
 /* Define to 1 if you have the `inet_ntop' function. */
 #define HAVE_INET_NTOP 1
@@ -153,7 +153,7 @@
 #define HAVE_NETDB_H 1
 
 /* Define to 1 if you have the <netinet/in6.h> header file. */
-#define HAVE_NETINET_IN6_H 1
+/* #undef HAVE_NETINET_IN6_H */
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #define HAVE_NETINET_IN_H 1
@@ -162,7 +162,7 @@
 #define HAVE_NETINET_TCP_H 1
 
 /* Define if the system has openssl */
-/* #undef HAVE_OPENSSL */
+#define HAVE_OPENSSL 1
 
 /* Define to 1 if you have the `pipe' function. */
 #define HAVE_PIPE 1
@@ -213,10 +213,10 @@
 #define HAVE_SIGACTION 1
 
 /* Define to 1 if you have the `signal' function. */
-/* #undef HAVE_SIGNAL */
+#define HAVE_SIGNAL 1
 
 /* Define to 1 if you have the `splice' function. */
-/* #undef HAVE_SPLICE */
+#define HAVE_SPLICE 1
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #define HAVE_STDARG_H 1
@@ -237,7 +237,7 @@
 #define HAVE_STRING_H 1
 
 /* Define to 1 if you have the `strlcpy' function. */
-#define HAVE_STRLCPY 1
+/* #undef HAVE_STRLCPY */
 
 /* Define to 1 if you have the `strsep' function. */
 #define HAVE_STRSEP 1
@@ -282,7 +282,7 @@
 /* #undef HAVE_STRUCT_SO_LINGER */
 
 /* Define to 1 if you have the `sysctl' function. */
-/* #undef HAVE_SYSCTL */
+#define HAVE_SYSCTL 1
 
 /* Define to 1 if you have the <sys/devpoll.h> header file. */
 /* #undef HAVE_SYS_DEVPOLL_H */
@@ -324,10 +324,10 @@
 #define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/sysctl.h> header file. */
-/* #undef HAVE_SYS_SYSCTL_H */
+#define HAVE_SYS_SYSCTL_H 1
 
 /* Define to 1 if you have the <sys/timerfd.h> header file. */
-/* #undef HAVE_SYS_TIMERFD_H */
+#define HAVE_SYS_TIMERFD_H 1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
@@ -433,25 +433,25 @@
 #define SIZEOF_INT 4
 
 /* The size of `long', as computed by sizeof. */
-#define SIZEOF_LONG 4
+#define SIZEOF_LONG 8
 
 /* The size of `long long', as computed by sizeof. */
 #define SIZEOF_LONG_LONG 8
 
 /* The size of `off_t', as computed by sizeof. */
-#define SIZEOF_OFF_T 4
+#define SIZEOF_OFF_T 8
 
 /* The size of `pthread_t', as computed by sizeof. */
-#define SIZEOF_PTHREAD_T 4
+#define SIZEOF_PTHREAD_T 8
 
 /* The size of `short', as computed by sizeof. */
 #define SIZEOF_SHORT 2
 
 /* The size of `size_t', as computed by sizeof. */
-#define SIZEOF_SIZE_T 4
+#define SIZEOF_SIZE_T 8
 
 /* The size of `void *', as computed by sizeof. */
-#define SIZEOF_VOID_P 4
+#define SIZEOF_VOID_P 8
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1

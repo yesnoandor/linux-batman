@@ -21,6 +21,7 @@
 #include	"module/gb905_peri/gb905_peri_common.h"
 #include	"module/gb905_peri/toplight/gb905_toplight.h"
 
+#include	"middleware/info/toplight.h"
 #include	"middleware/uart/fleety_uart.h"
 #include	"middleware/event/fleety_event.h"
 
@@ -41,17 +42,17 @@ int demo_toplight(void)
 		//sleep(5);
 		//gb905_toplight_reset();
 
-		gb905_toplight_set_operation_status(TOPLIGHT_STATUS_EMPTY);
+		set_toplight_operation_status(TOPLIGHT_STATUS_EMPTY);
 		sleep(5);
-		gb905_toplight_set_operation_status(TOPLIGHT_STATUS_LOADING);
+		set_toplight_operation_status(TOPLIGHT_STATUS_LOADING);
 		sleep(5);
-		gb905_toplight_set_operation_status(TOPLIGHT_STATUS_STOP);
+		set_toplight_operation_status(TOPLIGHT_STATUS_STOP);
 		sleep(5);
-		gb905_toplight_set_operation_status(TOPLIGHT_STATUS_ORDER);
+		set_toplight_operation_status(TOPLIGHT_STATUS_ORDER);
 		sleep(5);
-		gb905_toplight_set_operation_status(TOPLIGHT_STATUS_ALARM);
+		set_toplight_operation_status(TOPLIGHT_STATUS_ALARM);
 		sleep(5);
-		gb905_toplight_set_operation_status(TOPLIGHT_STATUS_SECURITY);
+		set_toplight_operation_status(TOPLIGHT_STATUS_SECURITY);
 		sleep(20);
 
 

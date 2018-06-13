@@ -153,7 +153,7 @@ int demo_libevent_server(void)
 */
 
 
-/*
+
 #include	<stdio.h>
 #include	<string.h>
 #include	<errno.h>
@@ -172,7 +172,7 @@ static int tcp_server_init(int port, int listen_num)
     evutil_socket_t listener;
 	struct sockaddr_in sin;
 
-	listener = socket(AF_INET, SOCK_STREAM, 0);  
+	listener = socket(AF_INET, SOCK_STREAM, 0);
     if( listener == -1 )  
         return -1;
 
@@ -300,26 +300,22 @@ int demo_libevent_server(int argc, char** argv)
 	
 	return 0;  
 }  
-*/
 
 
-   
-#include	<netinet/in.h>    
-#include	<sys/socket.h>    
-#include	<unistd.h>    
-	   
-
+#if 0
+//---------------------   
+#include	<netinet/in.h>
+#include	<sys/socket.h>
+#include	<unistd.h>
 
 #include	<stdio.h>
 #include	<string.h>
 #include	<errno.h>
 
-
 #include	"event2/event.h"
 #include	"event2/listener.h"
 #include	"event2/bufferevent.h" 
-#include	"event2/thread.h"  
-
+#include	"event2/thread.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -418,6 +414,4 @@ int demo_libevent_server(void)
 
 	return 0;    
 }    
-
- 
-
+#endif

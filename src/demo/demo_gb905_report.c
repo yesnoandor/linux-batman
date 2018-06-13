@@ -22,7 +22,7 @@
 #include	"middleware/event/fleety_event.h"
 #include	"middleware/socket/fleety_socket.h"
 
-#include	"main/fleety_report.h"
+#include	"app/report/fleety_report.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"

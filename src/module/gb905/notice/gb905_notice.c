@@ -16,9 +16,13 @@
 ********************************************************************************************************/
 #include	"common.h"
 
+#include	"middleware/db/sqlite3/notice_sqlite3.h"
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/notice/gb905_notice.h"
+#include	"module/gb905_ex/ui/ui_notice.h"
+
+#include	"middleware/info/notice.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -58,14 +62,56 @@ typedef struct{
 unsigned char gb905_notice_treat(unsigned char *buf,int len)
 {
     gb905_notice_t *notice;
-
+    int data_len;
     DbgFuncEntry();
 
+
     notice = (gb905_notice_t *)buf;
+    data_len = strlen((char *)&notice->content);
+    DbgPrintf("flag = 0x%0x len %d\r\n",notice->flag.whole,data_len);
 
-    DbgPrintf("flag = 0x%0x\r\n",notice->flag.whole);
-    DbgPrintf("content = %s\r\n",(unsigned char *)&notice->content);
+    //最大文本消息长度为449byte
+    if(data_len>NOTICE_MAX_LEN -1)// skip '\0'
+    {
+        return GB905_RESULT_FAIL;
+    }
+    
+    //DbgPrintf("content = %s\r\n",(unsigned char *)&notice->content);
+	
+	if(notice->flag.flag.urgent)
+	{
+		//发送当前文本信息到UI(紧急报文:文本+语音提示)
+		ui_send_current_notice_list(buf,len,DISPLAY_TYPE_TTS_NOTICE);
+	}
+	else
+	{
+		if((notice->flag.flag.lcd||notice->flag.flag.adv)&&notice->flag.flag.tts)
+		{
+			//发送当前文本信息到UI(文本+语音提示)
+			ui_send_current_notice_list(buf,len,DISPLAY_TYPE_TTS_NOTICE);			
+		}
+		else if((notice->flag.flag.lcd||notice->flag.flag.adv))
+		{
+			//发送当前文本信息到UI(仅文本提示)
+			ui_send_current_notice_list(buf,len,DISPLAY_TYPE_NOTICE);
+		}
+		else if(notice->flag.flag.tts)
+		{
+			//发送当前文本信息到UI(仅语音提示)
+			ui_send_current_notice_list(buf,len,DISPLAY_TYPE_TTS);			
+		}
+		else
+		{
+			//发送当前文本信息到UI(其他情况:仅文本提示)
+			ui_send_current_notice_list(buf,len,DISPLAY_TYPE_NOTICE);
+		}
+	}
+	
+	//保存文本信息到数据库
+	notice_sqlite3_insert_record((int)notice->flag.whole,(unsigned char *)&notice->content,strlen((char *)&notice->content));
 
+	//notice_sqlite3_restore_record();//for test
+	
     DbgFuncExit();
 	
     return GB905_RESULT_OK;

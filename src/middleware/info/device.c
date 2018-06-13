@@ -22,8 +22,7 @@
 #include	"misc/check.h"
 
 #include	"middleware/db/file/db_file_bin.h"
-
-
+#include	"middleware/db/file/db_file_path.h"
 #include	"middleware/info/device.h"
 
 
@@ -44,11 +43,14 @@ void init_device_info(void)
 	int ret;
 	int state = 0;
 	device_info_t info,info_buckup;
-	short crc;
+	unsigned short crc;
 
+	char path[MAX_PATH_CHARS_SIZE];
+	
 	DbgFuncEntry();
-
-	ret = file2buf(DEVICE_INFO_FILE,(unsigned char*)&info,sizeof(device_info_t));
+	
+	build_db_path(path,DEVICE_INFO_FILE);
+	ret = file2buf(path,0,(unsigned char*)&info,sizeof(device_info_t));
 	if(ret)
 	{
 		crc = crc16_compute((unsigned char *)&info,sizeof(device_info_t)-2,NULL);
@@ -63,7 +65,8 @@ void init_device_info(void)
 		}
 	}
 	
-	ret = file2buf(DEVICE_INFO_BACKUP_FILE,(unsigned char *)&info,sizeof(device_info_t));
+	build_db_path(path,DEVICE_INFO_BACKUP_FILE);
+	ret = file2buf(path,0,(unsigned char *)&info,sizeof(device_info_t));
 	if(ret)
 	{
 		crc = crc16_compute((unsigned char *)&info,sizeof(device_info_t)-2,NULL);
@@ -84,18 +87,24 @@ void init_device_info(void)
 	{
 		case 0:	// 两个文件都不正确
 			memset(&device_info,0x00,sizeof(device_info_t));
-			buf2file(DEVICE_INFO_FILE,(unsigned char *)&device_info,sizeof(device_info_t));
-			buf2file(DEVICE_INFO_BACKUP_FILE,(unsigned char *)&device_info,sizeof(device_info_t));
+			
+			build_db_path(path,DEVICE_INFO_FILE);
+			buf2file(path,0,(unsigned char *)&device_info,sizeof(device_info_t));
+
+			build_db_path(path,DEVICE_INFO_BACKUP_FILE);
+			buf2file(path,0,(unsigned char *)&device_info,sizeof(device_info_t));
 			break;
 			
 		case 1:	// 备份文件正确
 			memcpy((void *)(&device_info),(void *)&info_buckup,sizeof(device_info_t));
-			buf2file(DEVICE_INFO_FILE,(unsigned char *)&device_info,sizeof(device_info_t));
+			build_db_path(path,DEVICE_INFO_FILE);
+			buf2file(path,0,(unsigned char *)&device_info,sizeof(device_info_t));
 			break;
 
 		case 2:	// 主文件正确
 			memcpy((void *)&device_info,(void *)&info,sizeof(device_info_t));
-			buf2file(DEVICE_INFO_BACKUP_FILE,(unsigned char *)&device_info,sizeof(device_info_t));
+			build_db_path(path,DEVICE_INFO_BACKUP_FILE);
+			buf2file(path,0,(unsigned char *)&device_info,sizeof(device_info_t));
 			break;
 			
 		case 3:	// 两个文件都正确
@@ -136,6 +145,8 @@ void get_device_info(device_info_t * info)
 */
 void set_device_info(device_info_t * info)
 {
+	char path[MAX_PATH_CHARS_SIZE];
+
 	DbgFuncEntry();
 	
 	memcpy(&device_info,info,sizeof(device_info_t));
@@ -146,8 +157,10 @@ void set_device_info(device_info_t * info)
 	DbgPrintf("imsi_id = %s\n",device_info.imsi_id);
 	DbgPrintf("crc = 0x%x\r\n",device_info.crc);
 
-	buf2file(DEVICE_INFO_FILE,(unsigned char *)&device_info,sizeof(device_info_t));
-	buf2file(DEVICE_INFO_BACKUP_FILE,(unsigned char *)&device_info,sizeof(device_info_t));
+	build_db_path(path,DEVICE_INFO_FILE);
+	buf2file(path,0,(unsigned char *)&device_info,sizeof(device_info_t));
+	build_db_path(path,DEVICE_INFO_BACKUP_FILE);
+	buf2file(path,0,(unsigned char *)&device_info,sizeof(device_info_t));
 
 	DbgFuncExit();
 }

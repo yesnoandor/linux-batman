@@ -15,6 +15,7 @@
 ** Descriptions:		
 ********************************************************************************************************/
 #include	"common.h"
+#include	"misc/endian.h"
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/report/gb905_report.h"
@@ -65,11 +66,16 @@ void gb905_trace_send(void)
 
 unsigned char  gb905_trace_treat(unsigned char *buf,int len)
 {
-	//trace_body_t * trace_body;
+	trace_body_t * trace_body;
 
 	DbgFuncEntry();
+
+	trace_body = (trace_body_t *)buf;
 	
-	set_trace_setting((trace_body_t *)buf);
+	trace_body->interval = EndianReverse16(trace_body->interval);
+	trace_body->threhold = EndianReverse32(trace_body->threhold);
+	
+	set_trace_setting(trace_body);
 
 	debug_trace_setting();
 	

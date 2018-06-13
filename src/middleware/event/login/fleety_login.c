@@ -24,7 +24,10 @@
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/report/gb905_report.h"
 #include	"module/gb905/login/gb905_login.h"
+#include	"module/gb905_ex/ui/ui_login.h"
 
+#include	"middleware/info/toplight.h"
+#include	"middleware/info/status.h"
 
 
 #define		DEBUG_Y
@@ -36,18 +39,31 @@ void fleety_login_treat(int login)
 	if(login)
 	{
 		// 设置顶灯状态
-		gb905_toplight_set_operation_status(TOPLIGHT_STATUS_EMPTY);
+		set_toplight_operation_status(TOPLIGHT_STATUS_EMPTY);
 
 		// 设置顶灯星级
-		//gb905_toplight_set_star_status(0x01);
+		gb905_toplight_set_star_status(0x01);
 
 		// 向服务器发送上班签到信息
 		gb905_login();
+
+        //设置登录状态
+        set_login_mode();
+        
+		//向UI发送登录信息
+		ui_login_info_send_treat();
 	}
 	else
 	{
+		
+		// 设置顶灯状态
+		set_toplight_operation_status(TOPLIGHT_STATUS_STOP);
+		
 		// 向服务器发送下班签退信息
 		gb905_logout();
+
+        //设置未登录状态
+        set_logout_mode();
 	}
 }
 

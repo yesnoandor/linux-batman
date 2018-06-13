@@ -21,15 +21,9 @@
 extern "C" {
 #endif
 
-// 顶灯状态显示
-enum{
-	TOPLIGHT_STATUS_EMPTY=0,
-	TOPLIGHT_STATUS_LOADING,
-	TOPLIGHT_STATUS_STOP,
-	TOPLIGHT_STATUS_ORDER,
-	TOPLIGHT_STATUS_ALARM,
-	TOPLIGHT_STATUS_SECURITY,
-};
+
+
+#define		TOPLIGHT_TIMEOUT		10
 
 // 顶灯星级显示
 enum{
@@ -61,6 +55,22 @@ typedef struct{
 }__packed gb905_toplight_night_parems_t;
 
 
+// 顶灯升级消息体数据结构
+typedef struct{
+	unsigned char vendor_id;
+	unsigned char hw_version;
+	unsigned char main_sw_version;
+	unsigned char vice_sw_version;
+}__packed gb905_toplight_update_body_t;
+
+// 顶灯升级的完整数据结构
+typedef struct{
+	gb905_peri_header_t header;
+	gb905_toplight_update_body_t body;
+	gb905_peri_tail_t tail;
+}__packed gb905_toplight_update_t;
+
+
 int gb905_toplight_protocol_ayalyze(unsigned char * buf,int len);
 
 bool gb905_toplight_query_state(void);
@@ -74,7 +84,9 @@ int gb905_toplight_set_night_params(gb905_toplight_night_parems_t * night_params
 bool gb905_toplight_set_security(unsigned char* data,unsigned short data_len);
 bool gb905_toplight_clear_security(void);
 
+void gb905_toplight_transparent(unsigned char *msg_buf,unsigned short msg_len);
 
+void gb905_toplight_heart_beat_treat(void);
 
 #ifdef __cplusplus
 }

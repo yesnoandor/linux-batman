@@ -41,7 +41,7 @@ unsigned char mcu_volumn_treat(unsigned char *buf,int len)
 
 	volumn = *(unsigned char *)(&buf[1 + sizeof(mcu_protocol_header_t)]);
 
-	DbgPrintf("volumn = 0x%x\r\n",volumn);
+	DbgGood("volumn = 0x%x\r\n",volumn);
 
 	DbgFuncExit();
 

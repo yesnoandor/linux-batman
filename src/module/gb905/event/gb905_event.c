@@ -18,9 +18,12 @@
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/event/gb905_event.h"
+#include	"module/gb905_ex/ui/ui_event.h"
 
 #include	"middleware/socket/fleety_socket.h"
+#include	"middleware/db/sqlite3/event_sqlite3.h"
 
+#include	"middleware/info/event.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -50,34 +53,6 @@ typedef struct{
     unsigned char event_list;           // 事件列表首字节(列表长度最大为499    字节)
 }__packed gb905_event_t;
 
-// 事件项组成数据格式
-typedef struct{
-    unsigned char content[GB905_EVENT_MAX_CONTENT_LEN];		//事件内容(最长为20字节)
-}__packed gb905_event_list_t;
-
-static int gb905_event_map = 0;
-static gb905_event_list_t gb905_event_list[GB905_EVENT_MAX_NUM];
-
-//-----
-static void gb905_debug_event(void)
-{
-	int i;
-
-	DbgFuncEntry();
-
-	DbgPrintf("gb905 event map = 0x%0x\r\n",gb905_event_map);
-	
-	for(i=0;i<GB905_EVENT_MAX_NUM;i++)
-	{
-		if(gb905_event_map & (0x01 << i))
-		{
-			DbgPrintf("event id = %d\r\n",i);
-			DbgPrintf("event content = %s\r\n",gb905_event_list[i].content);
-		}
-	}
-
-	DbgFuncExit();
-}
 
 /** 
 * @brief 	构造整个事件报告的数据结构
@@ -108,29 +83,28 @@ static void gb905_build_report_event(gb905_report_event_t *report_event,unsigned
 unsigned char gb905_set_event_treat(unsigned char *buf,int len)
 {
     gb905_event_t * event;
+    save_event_t gb905_event_list;
     char *prt;
     int i,str_len;
-	int index;
 	
     DbgFuncEntry();
 
     event = (gb905_event_t *)buf;
     prt = (char *)&event->event_list;       
 
+	memset(&gb905_event_list,0x00,sizeof(save_event_t));
+    
     // 如果事件总数量为0，则删除现有所有事件
     if(0 == event->evnet_num)
     {
-        gb905_event_map = 0;
-		memset(gb905_event_list,0x00,sizeof(gb905_event_list));
-
 		// 删除终端数据库中的所有事件
-        
+        event_sqlite3_delete_record();
     }
     else
-    {
+    {	
         for(i = 0;i < event->evnet_num;i++)
     	{
-    		index = *prt;
+    		gb905_event_list.event_msg[i].id = *prt;
 
 			prt++;
     		str_len = strlen(prt);
@@ -139,17 +113,36 @@ unsigned char gb905_set_event_treat(unsigned char *buf,int len)
     		{
     			// 跳过长度大于最大事件长度的事件	
     			prt += str_len+1;
+                event->evnet_num --;
     			continue;
     		}
 			
-			gb905_event_map |= (0x01<<index);
-    		memset(gb905_event_list[index].content,0x00,sizeof(gb905_event_list[index].content));
-    		strncpy((void *)gb905_event_list[index].content,prt,str_len);
+    		memset(gb905_event_list.event_msg[i].content,0x00,sizeof(gb905_event_list.event_msg[i].content));
+    		strncpy((void *)gb905_event_list.event_msg[i].content,prt,str_len);
 
+			//判断该事件ID是否已经存在
+			if(!event_sqlite3_judge_event_exist((int)gb905_event_list.event_msg[i].id))
+			{
+				//如果不存在,则直接插入该新事件
+				event_sqlite3_insert_record((int)gb905_event_list.event_msg[i].id,prt,str_len);
+			}
+			else
+			{
+				//如果存在,则更新该事件的内容
+				event_sqlite3_update_by_id((int)gb905_event_list.event_msg[i].id,prt);
+			}
 			prt += str_len + 1;		// skip '\0'
     	}
 
-		gb905_debug_event();
+        gb905_event_list.num = event->evnet_num;//符合要求的事件数量(内容不大于20字节)
+
+        event_set_info(&gb905_event_list);
+
+        //发送到UI显示当前下发的事件列表
+    	ui_send_current_event_list();
+
+        //gb905_debug_event();
+		//event_sqlite3_restore_record();//for test
     }
 
     DbgFuncExit();
@@ -173,4 +166,5 @@ void gb905_report_event_treat(unsigned char evnet_id)
     
     DbgFuncExit();
 }
+
 

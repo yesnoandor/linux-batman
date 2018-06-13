@@ -23,6 +23,8 @@ extern "C" {
 
 #include	"module/gb905_peri/gb905_peri_common.h"
 
+#define     TSM_TIMEOUT         10
+
 enum{
 	TSM_BPS2400 = 0,
 	TSM_BPS4800,
@@ -98,6 +100,22 @@ typedef struct{
 	unsigned short result;						// 应答的状态(成功,  失败，不支持等)
 }__packed gb905_tsm_common_ack_t;
 
+
+// TSM  模块升级消息体数据结构
+typedef struct{
+	unsigned char vendor_id;
+	unsigned char hw_version;
+	unsigned char main_sw_version;
+	unsigned char vice_sw_version;
+}__packed gb905_tsm_update_body_t;
+
+// TSM  模块升级的完整数据结构
+typedef struct{
+	gb905_peri_header_t header;
+	gb905_tsm_update_body_t body;
+	gb905_peri_tail_t tail;
+}__packed gb905_tsm_update_t;
+
 bool gb905_tsm_query_state(void);
 bool gb905_tsm_reset(void);
 bool gb905_tsm_upgrade(gb905_tsm_upgrade_t* tsm_date);
@@ -106,6 +124,7 @@ bool gb905_tsm_decryption(unsigned char* data,unsigned short data_len);
 
 
 int gb905_tsm_protocol_ayalyze(unsigned char * buf,int len);
+void gb905_tsm_heart_beat_treat(void);
 
 #ifdef __cplusplus
 }

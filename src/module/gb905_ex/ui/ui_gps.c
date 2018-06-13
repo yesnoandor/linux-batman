@@ -28,8 +28,6 @@
 
 
 
-
-
 unsigned char ui_gps_info_treat(unsigned char *buf,unsigned int len)
 {
 	gps_info_t *gsp_info;
@@ -39,6 +37,7 @@ unsigned char ui_gps_info_treat(unsigned char *buf,unsigned int len)
 	gsp_info = (gps_info_t *)buf;
 	
 	gps_set_info(gsp_info);
+	gps_debug_info();
 	
 	DbgFuncExit();
 

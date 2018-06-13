@@ -28,13 +28,14 @@
 #include	"module/itop/authorize/itop_authorize.h"
 
 #include	"middleware/info/device.h"
+#include	"middleware/info/setting.h"
+
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
 
 //----------
-#define		authorize_server_ip_addr		"218.90.157.214"
-#define		authorize_server_port			8688
+
 
 #define		MAX_AUTHORIZE_SERVER_TIMEOUT	10
 
@@ -144,8 +145,8 @@ static void authorize_timeout_cb(int fd, short event, void * pArg)
 		struct sockaddr_in tSockAddr;
 		memset(&tSockAddr, 0, sizeof(tSockAddr));
 		tSockAddr.sin_family = AF_INET;
-		tSockAddr.sin_addr.s_addr = inet_addr(authorize_server_ip_addr);
-		tSockAddr.sin_port = htons(authorize_server_port);
+		tSockAddr.sin_addr.s_addr = inet_addr(AUTH_SERVER_IP_ADDR);
+		tSockAddr.sin_port = htons(AUTH_SERVER_PORT);
 			
 		// 连接服务器
 		if( bufferevent_socket_connect(bev, (struct sockaddr*)&tSockAddr, sizeof(tSockAddr)) < 0)
@@ -180,8 +181,12 @@ void authorize_socket_init(void)
 {
 	int ret;
 	struct bufferevent* bev;
+	socket_params_t * socket_params;
 	
 	DbgFuncEntry();
+
+	socket_params = get_socket_params();
+	
 
 	// 创建并初始化一个event_base 
 	struct event_base* base = event_base_new();
@@ -198,8 +203,8 @@ void authorize_socket_init(void)
 	struct sockaddr_in tSockAddr;
 	memset(&tSockAddr, 0, sizeof(tSockAddr));
 	tSockAddr.sin_family = AF_INET;
-	tSockAddr.sin_addr.s_addr = inet_addr(authorize_server_ip_addr);
-	tSockAddr.sin_port = htons(authorize_server_port);
+	tSockAddr.sin_addr.s_addr = inet_addr(socket_params->auth_server_ip);	// AUTH_SERVER_IP_ADDR
+	tSockAddr.sin_port = htons(socket_params->auth_server_port);			// AUTH_SERVER_PORT
 	
 	// 连接认证服务器
 	ret = bufferevent_socket_connect(bev, (struct sockaddr*)&tSockAddr, sizeof(tSockAddr));
@@ -222,11 +227,14 @@ void authorize_socket_init(void)
 
 	// 事件循环
 	event_base_dispatch(base);
+
+	// 取消定时器--- ??? 
+	evtimer_del(timeout);
 	
-	//这将自动close  套接字和free  读写缓冲区  
+	// 这将自动close  套接字和free  读写缓冲区  
 	bufferevent_free(bev);
 	
-	//	销毁event_base
+	// 销毁event_base
 	event_base_free(base);
 
 	DbgFuncExit();

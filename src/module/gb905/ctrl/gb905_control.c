@@ -38,18 +38,7 @@
 
 
 
-// 无线升级参数
-typedef  struct
-{
-	gb905_update_device_info_t	device_info;
 
-	char 	update_server_apn[32];				// 升级服务器APN，无线通信拨号访问点
-	char 	update_server_username[32];			// 升级服务器无线通信拨号用户名
-	char 	update_server_password[32];			// 升级服务器无线通信拨号密码
-	char 	update_server_ipaddr[32];			// 升级服务器地址,IP 或域名
-
-	unsigned short	update_server_tcp_port;		// 升级服务器TCP 端口
-}gb905_update_param_t;
 
 
 //-----
@@ -80,7 +69,7 @@ static void gb905_build_update_result(gb905_update_result_body_t * body,unsigned
 	
 	DbgFuncEntry();
 	
-	get_update_info((unsigned char *)&update_device_info);
+	get_update_param((unsigned char *)&update_device_info);
 
 	body->device_info.device_type = update_device_info.device_type;
 	body->device_info.vendor_id = update_device_info.vendor_id;
@@ -133,7 +122,7 @@ static void gb905_update_device(unsigned char *buf,int len)
 		
 	gb905_debug_update_param(&update_param);
 
-	set_update_info((unsigned char *)&update_param.device_info);
+	set_update_param((unsigned char *)&update_param.device_info);
 	
 	DbgFuncExit();
 }

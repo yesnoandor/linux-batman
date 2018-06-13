@@ -16,13 +16,18 @@
 ********************************************************************************************************/
 #include	"common.h"
 
+#include	"platform/platform.h"
 #include	"platform/hw/hw_system.h"
 
 #include	"module/gb905_ex/mcu/mcu_common.h"
+#include	"module/gb905_ex/mcu/mcu_gpio.h"
 #include	"module/gb905_ex/ui/ui_common.h"
 
 #include	"module/gps/gps_nmea.h"
 #include	"module/gprs/gprs_at_cmd.h"
+
+#include	"app/record/fleety_record.h"
+
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -38,20 +43,25 @@ void platform_hardware_init(void)
 	ubuntu_imei_simu_init();
 #endif
 
-#if defined (PLATFORM_QCOM)
-	ui_protocol_init();
-	qcom_keys_init();
-#endif
-
 
 #if defined (PLATFORM_HW)
 	ui_protocol_init();
 	mcu_protocol_init();
 	gps_nmea_init();
 	gprs_at_protocol_init();
+    mysdk_init();
 #endif 
 
+#if defined (PLATFORM_QCOM)
+	ui_protocol_init();
+	mcu_protocol_init();
+	qcom_keys_init();
+#endif
+
 #if defined (PLATFORM_MTK)
+	ui_protocol_init();
+	mcu_protocol_init();
+	//mtk_keys_init();
 #endif		
 }
 
@@ -72,9 +82,12 @@ void platform_hardware_post_init(void)
 
 #if defined (PLATFORM_HW)
 	gprs_get_imei();
+	fleety_call_function_init();
+    mcu_send_version_req();
 #endif
 
 #if defined (PLATFORM_MTK)
+    ui_imei_info_req();
 #endif		
 }
 
@@ -89,12 +102,11 @@ void platform_hardware_relay_output(int index,int level)
 #endif
 
 #if defined (PLATFORM_QCOM)
-
+	
 #endif
 
-
 #if defined (PLATFORM_HW)
-
+	mcu_gpo_output(index,level);
 #endif 
 
 #if defined (PLATFORM_MTK)
@@ -175,3 +187,28 @@ void platform_system_recovery(void)
 
 #endif	
 }
+
+/** 
+* @brief 	硬件平台的mount  udisk
+*
+*/
+void platform_system_mount_udisk(void)
+{
+#if defined (PLATFORM_UBUNTU)
+	//ubuntu_system_mount_disk();
+#endif
+	
+#if defined (PLATFORM_QCOM)
+	//qcom_system_mount_disk();
+#endif
+	
+	
+#if defined (PLATFORM_HW)
+	hw_system_mount_disk();
+#endif 
+	
+#if defined (PLATFORM_MTK)
+	
+#endif
+}
+

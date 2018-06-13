@@ -17,6 +17,7 @@
 #include	"common.h"
 
 #include	"module/gb905_ex/mcu/mcu_common.h"
+#include	"module/gb905_ex/mcu/mcu_eval.h"
 
 
 #include	"middleware/event/fleety_event.h"
@@ -50,12 +51,33 @@ unsigned char mcu_get_evaluate_treat(unsigned char *buf,int len)
 
 	evaluate = *(unsigned char *)(&buf[1 + sizeof(mcu_protocol_header_t)]);
 
-	DbgWarn("evaluate = 0x%x\r\n",evaluate);
+	DbgGood("evaluate = 0x%x\r\n",evaluate);
 
 	event.id = EVAL_EVENT;
-	event.param = (int)evaluate;
+	//event.param = (int)evaluate;
+	if(evaluate==0x00)
+	{
+		event.param = EVAL_OK;
+	}
+	else if(evaluate==0x01)
+	{
+		event.param = EVAL_SOSO;
+	}
+	else if(evaluate==0x02)
+	{
+		event.param = EVAL_BAD;
+	}
+	else if(evaluate==0x03)
+	{
+		event.param = EVAL_COMPLAINT;
+	}
+	else
+	{
+		event.param = EVAL_NONE;
+	}
+
 	event.priority = DAFAULT_PRIORITY;
-	
+
 	fleety_event_push(&event);
 
 	DbgFuncExit();

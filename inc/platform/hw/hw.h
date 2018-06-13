@@ -22,33 +22,53 @@
 extern "C" {
 #endif
 
+#define		PLATFORM				"hw"
+#define		PRODUCT					"M570"
+
 #define 	__packed 				__attribute__((packed))
 
-#define		meter_uart_device		"/dev/ttyAMA2"			// "/dev/ttyAMA2"
-#define		toplight_uart_device	"/dev/ttyAMA3"			// "/dev/ttyAMA3"
-#define		tsm_uart_device			"/dev/ttyACM0"			// "/dev/ttyACM0"
-#define		gps_uart_device			"/dev/ttyACM1"			// "/dev/ttyACM1"
-#define		mcu_uart_device			"/dev/ttyACM4"			// "/dev/ttyACM4"
-#define		gprs_uart_device		"/dev/ttyUSB2"	
-
-#define		meter_uart_bps			B9600
-#define		toplight_uart_bps		B9600
-#define		tsm_uart_bps			B9600
-#define		gps_uart_bps			B9600
-#define		mcu_uart_bps			B115200
-#define		gprs_uart_bps			B9600
 
 
-#define		auth_server_ip_addr		"218.90.157.214"
-#define		auth_server_port		8688
-#define		main_server_ip_addr		"180.168.34.250"		// "192.168.62.34"	//"180.168.34.250"
-#define		main_server_port		5606					// 10004			//5285
-#define		aux_server_ip_addr		""
-#define		aux_server_port			0
-#define		ui_server_ip_addr		""
-#define		ui_server_port			0
+// 串口配置
+#define		METER_UART_DEV_NAME			"/dev/ttyAMA2"			// "/dev/ttyAMA2"
+#define		TOPLIGHT_UART_DEV_NAME		"/dev/ttyAMA3"			// "/dev/ttyAMA3"
+#define		TSM_UART_DEV_NAME			"/dev/ttyACM0"			// "/dev/ttyACM0"
+#define		GPS_UART_DEV_NAME			"/dev/ttyACM1"			// "/dev/ttyACM1"
+#define		MCU_UART_DEV_NAME			"/dev/ttyACM4"			// "/dev/ttyACM4"
+#define		GPRS_UART_DEV_NAME			"/dev/ttyUSB2"
+#define		INSPECT_UART_DEV_NAME		"/dev/ttyACM2"
+
+#define		METER_UART_DEV_BPS			B9600
+#define		TOPLIGHT_UART_DEV_BPS		B9600
+#define		TSM_UART_DEV_BPS			B9600
+#define		GPS_UART_DEV_BPS			B9600
+#define		MCU_UART_DEV_BPS			B115200
+#define		GPRS_UART_DEV_BPS			B9600
+#define		INSPECT_UART_DEV_BPS		B115200
+
+#define		AUTH_SERVER_IP_ADDR		"218.90.157.214"
+#define		AUTH_SERVER_PORT		8688
+#define		MAIN_SERVER_IP_ADDR		"180.168.34.250"		// "192.168.62.34"	//"180.168.34.250"
+#define		MAIN_SERVER_PORT		5606					// 10004			//5285
+#define		AUX_SERVER_IP_ADDR		""
+#define		AUX_SERVER_PORT			0
+#define		UI_SERVER_IP_ADDR		"192.168.0.179"
+#define		UI_SERVER_PORT			8090
 
 #define		DB_FILE_PATH			"/mnt/fleety/"
+#define 	EXPORT_PATH				"/mnt/udisk/"
+#define		PHOTO_PATH				""
+
+#define		UDISK_PATH				""
+#define		STATUS_PATH				"/mnt/fleety/"
+
+
+#define		METER_VENDOR_ID			0x13		// 溧阳03；正尚13
+#define		TOPLIGHT_VENDOR_ID		0x00		// 0x10		//debug test 0x02
+#define		TSM_VENDOR_ID			0x05		//金坛03；福州05；测试01
+
+#define		DEFAULT_HW_VERSION		"570LL"
+
 
 #ifdef __cplusplus
 }

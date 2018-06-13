@@ -7,6 +7,7 @@
 # -I :     
 # -L : 指定库的路径
 # -l : 指定静态库的名称
+# -Wl,R : 
 #
 # -g : 生成调试信息
 # −Wall : 打开警告开关
@@ -108,31 +109,38 @@ BINDIR		:= $(OUTDIR)/bin
 GCOVDIR		:= $(OUTDIR)/gcov
 RELEASEDIR	:= $(OUTDIR)/release
 
+USER		:= $(shell whoami)
+HOMEDIR		:= /home/$(USER)
+
 ifeq ($(platform), hw)
 LIBDIR		:= $(TOPDIR)/libs/hw/a
+LIBSODIR	:= $(TOPDIR)/libs/hw/so
 endif
 
 ifeq ($(platform), qcom)
 LIBDIR		:= $(TOPDIR)/libs/qcom/a
+LIBSODIR	:= $(TOPDIR)/libs/qcom/so
 
-NDKDIR		:=/home/wenyu/Android/Sdk/ndk-bundle
+NDKDIR		:=$(HOMEDIR)/Android/Sdk/ndk-bundle
 SYSDIR		:=$(NDKDIR)/platforms/android-19/arch-arm
 endif
 
 
 ifeq ($(platform), mtk)
 LIBDIR		:= $(TOPDIR)/libs/mtk/a
+LIBSODIR	:= $(TOPDIR)/libs/mtk/so
 
-NDKDIR		:=/home/wenyu/Android/Sdk/ndk-bundle
+NDKDIR		:=$(HOMEDIR)/Android/Sdk/ndk-bundle
 SYSDIR		:=$(NDKDIR)/platforms/android-19/arch-arm
 endif
 
 ifeq ($(platform), ubuntu)
 LIBDIR		:= $(TOPDIR)/libs/ubuntu/a
+LIBSODIR	:= $(TOPDIR)/libs/ubuntu/so
 endif
 
 # 目录宏导出
-export		TOPDIR INCDIR LIBDIR OUTDIR OBJDIR BINDIR DOCDIR RESDIR LOGDIR RELEASEDIR
+export		TOPDIR INCDIR LIBDIR LIBSODIR OUTDIR OBJDIR BINDIR DOCDIR RESDIR LOGDIR RELEASEDIR
 
 ifeq ($(platform), qcom)
 export		NDKDIR SYSDIR 			

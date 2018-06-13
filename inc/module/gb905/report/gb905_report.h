@@ -42,7 +42,7 @@ typedef union
 		unsigned eval_fault:1;				// 服务评价器故障
 		unsigned led_adver_fault:1;			// LED 广告屏故障
 		unsigned lcd_module_fault:1;		// LCD 显示屏故障
-		unsigned tsm_faule:1;				// 安全模块故障
+		unsigned tsm_fault:1;				// 安全模块故障
 		unsigned led_light_fault:1;			// LED 顶灯故障
 		unsigned overspeed:1;				// 超速报警
 		unsigned driving_timeout:1;			// 连续驾驶超时

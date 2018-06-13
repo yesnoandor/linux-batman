@@ -377,7 +377,7 @@ int gb905_ex_protocol_ayalyze(gb905_ex_funcs_t * funcs,unsigned char * buf,int l
 		}
 		#endif
   
-		if(offset && (msg.raw.len > sizeof(gb905_ex_header_t) + 3))
+		if(offset && (msg.raw.len >= sizeof(gb905_ex_header_t) + 3))
 		{
 			msg.now.buf = (unsigned char *)malloc(msg.raw.len);
 			if(!msg.now.buf)
@@ -388,14 +388,14 @@ int gb905_ex_protocol_ayalyze(gb905_ex_funcs_t * funcs,unsigned char * buf,int l
  
 			msg.now.len = gb905_ex_unescape(msg.now.buf,msg.raw.buf,msg.raw.len);
   
-			#if 0
+			#if 1
 			{
 				int i;
 				  
-				DbgPrintf("msg_len = %d\r\n",msg.msg_len);
-				for(i=0;i<msg.msg_len;i++)
+				DbgPrintf("len = %d\r\n",msg.now.len);
+				for(i=0;i<msg.now.len;i++)
 				{
-					DbgPrintf("msg_buf[%d] = 0x%2x\r\n",i,msg.msg_buf[i]);
+					DbgPrintf("msg[%d] = 0x%2x\r\n",i,msg.now.buf[i]);
 				}
 			}
 			#endif

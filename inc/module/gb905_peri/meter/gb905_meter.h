@@ -174,8 +174,8 @@ typedef struct{
 //计价器开机/  关机应答数据结构
 typedef struct{
 	gb905_peri_header_t header;
-    gb905_meter_loginout_ack_body_t ack_body;
-    gb905_peri_tail_t tail;
+	gb905_meter_loginout_ack_body_t ack_body;
+	gb905_peri_tail_t tail;
 }__packed gb905_meter_loginout_ack_t;
 
 #if 0
@@ -228,6 +228,28 @@ typedef struct{
 	unsigned int total_operation_num;				// 总营运次数
 }__packed gb905_meter_close_success_body_t;
 
+
+// 计价器永久时钟误差查询数据结构
+typedef gb905_meter_query_state_t	gb905_meter_calibration_time_t;
+
+
+
+// 计价器升级消息体数据结构
+typedef struct{
+	unsigned char vendor_id;
+	unsigned char hw_version;
+	unsigned char main_sw_version;
+	unsigned char vice_sw_version;
+}__packed gb905_meter_update_body_t;
+
+// 计价器升级的完整数据结构
+typedef struct{
+	gb905_peri_header_t header;
+	gb905_meter_update_body_t body;
+	gb905_peri_tail_t tail;
+}__packed gb905_meter_update_t;
+
+
 //  计价器营运数据结构(METER  -->  ISU)
 typedef struct{
 	unsigned char plate_number[6];					// 车牌号(ASCII 码)
@@ -249,12 +271,15 @@ void gb905_meter_query_state(void);
 void gb905_meter_query_parameter(void);
 void gb905_meter_set_parameter(void);
 
-bool gb905_meter_open_ack(void);
+bool gb905_meter_open_close_ack(void);
+void gb905_meter_update(void);
 
 
 int gb905_meter_protocol_ayalyze(unsigned char * buf,int len);
 
 void gb905_meter_transparent(unsigned char *msg_buf,unsigned short msg_len);
+
+void gb905_meter_heart_beat_treat(void);
 
 #ifdef __cplusplus
 }

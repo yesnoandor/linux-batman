@@ -22,8 +22,8 @@
 extern "C" {
 #endif
 
-void fleety_acc_treat(int acc_on);
-
+void fleety_acc_treat(int acc_state);
+void fleety_acc_monitor_func(unsigned char params);
 
 #ifdef __cplusplus
 }

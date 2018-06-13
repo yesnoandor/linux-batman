@@ -36,11 +36,12 @@ typedef struct
 	unsigned char direction;			// 方向 (0~178,刻度=2  度,正北为0,顺时针)
 
 	int number;							// 星数
-}gps_info_t,*p_gps_info_t;
+}__packed gps_info_t,*p_gps_info_t;
 
 
 void gps_get_info(gps_info_t * gps_info);
 void gps_set_info(gps_info_t * gps_info);
+void gps_debug_info(void);
 
 
 #ifdef __cplusplus

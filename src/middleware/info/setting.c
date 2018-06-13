@@ -29,6 +29,8 @@
 
 #include	"middleware/info/setting.h"
 #include	"middleware/info/status.h"
+#include	"middleware/socket/fleety_socket.h"
+#include	"middleware/uart/fleety_uart.h"
 
 
 #define		DEBUG_Y
@@ -37,6 +39,9 @@
 
 #define		SETTING_FILE		"setting.xml"
 #define		SETTING_FILE_BAK	"setting.bak"
+
+#define		SOCKET_FILE			"socket_setting.xml"
+#define		UART_FILE			"uart_setting.xml"
 
 //----- 
 static trace_params_t	trace_params;
@@ -74,6 +79,277 @@ void debug_trace_setting(void)
 	
 	DbgFuncExit();
 }
+
+
+//-----
+static uart_params_t  uart_params;
+
+static unsigned char * uart_params_point[] = 
+{
+	(unsigned char *)uart_params.meter_uart_device,
+	(unsigned char *)&uart_params.meter_uart_bps,
+
+	(unsigned char *)uart_params.toplight_uart_device,
+	(unsigned char *)&uart_params.toplight_uart_bps,
+
+	(unsigned char *)uart_params.tsm_uart_device,
+	(unsigned char *)&uart_params.tsm_uart_bps,
+
+	(unsigned char *)uart_params.gps_uart_device,
+	(unsigned char *)&uart_params.gps_uart_bps,
+
+	(unsigned char *)uart_params.mcu_uart_device,
+	(unsigned char *)&uart_params.mcu_uart_bps,
+
+	(unsigned char *)uart_params.gprs_uart_device,
+	(unsigned char *)&uart_params.gprs_uart_bps,
+
+	(unsigned char *)uart_params.inspect_uart_device,
+	(unsigned char *)&uart_params.inspect_uart_bps,	
+};
+
+static char * uart_params_type[] = 
+{
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+};
+
+/** 
+* @brief	从xml    文件中获取uart  设备和波特率 参数
+*
+*/
+void init_uart_params(void)
+{
+	bool ret;
+	char path[MAX_PATH_CHARS_SIZE];
+
+	DbgFuncEntry();
+
+	build_db_path(path,UART_FILE);
+	ret = xml2data(path,uart_params_point);
+	if(!ret)
+	{
+		memset(&uart_params,0x00,sizeof(uart_params_t));				
+
+		strcpy((char *)uart_params.meter_uart_device,METER_UART_DEV_NAME);
+		uart_params.meter_uart_bps = METER_UART_DEV_BPS;
+
+		strcpy((char *)uart_params.toplight_uart_device,TOPLIGHT_UART_DEV_NAME);
+		uart_params.toplight_uart_bps = TOPLIGHT_UART_DEV_BPS;
+		
+		strcpy((char *)uart_params.tsm_uart_device,TSM_UART_DEV_NAME);
+		uart_params.tsm_uart_bps = TSM_UART_DEV_BPS;
+
+		strcpy((char *)uart_params.gps_uart_device,GPS_UART_DEV_NAME);
+		uart_params.gps_uart_bps = GPS_UART_DEV_BPS;
+
+		strcpy((char *)uart_params.mcu_uart_device,MCU_UART_DEV_NAME);
+		uart_params.mcu_uart_bps = MCU_UART_DEV_BPS;
+		
+		strcpy((char *)uart_params.gprs_uart_device,GPRS_UART_DEV_NAME);
+		uart_params.gprs_uart_bps = GPRS_UART_DEV_BPS;
+
+		strcpy((char *)uart_params.inspect_uart_device,INSPECT_UART_DEV_NAME);
+		uart_params.inspect_uart_bps = INSPECT_UART_DEV_BPS;
+
+		DbgPrintf("list size = %d\r\n",ARRAY_SIZE(uart_params_point));
+	
+		init_xml(UART_FILE,uart_params_point,uart_params_type,ARRAY_SIZE(uart_params_point));
+	}
+
+	fleety_modify_uart_device(METER_UART,uart_params.meter_uart_device,uart_params.meter_uart_bps);
+	fleety_modify_uart_device(TOPLIGHT_UART,uart_params.toplight_uart_device,uart_params.toplight_uart_bps);
+	fleety_modify_uart_device(TSM_UART,uart_params.tsm_uart_device,uart_params.tsm_uart_bps);
+	fleety_modify_uart_device(GPS_UART,uart_params.gps_uart_device,uart_params.gps_uart_bps);
+	fleety_modify_uart_device(MCU_UART,uart_params.mcu_uart_device,uart_params.mcu_uart_bps);
+	fleety_modify_uart_device(GPRS_UART,uart_params.gprs_uart_device,uart_params.gprs_uart_bps);
+	fleety_modify_uart_device(INSPECT_UART,uart_params.inspect_uart_device,uart_params.inspect_uart_bps);
+
+	debug_uart_params();
+
+	DbgFuncExit();
+}
+
+
+uart_params_t * get_uart_params(void)
+{
+	return &uart_params;
+}
+
+/** 
+* @brief	 将uart   参数写入xml  文件
+*
+*/
+void set_uart_params(void)
+{
+	char path[MAX_PATH_CHARS_SIZE];
+
+	build_db_path(path,SOCKET_FILE);
+	data2xml(path,uart_params_point);
+}
+
+void debug_uart_params(void)
+{
+	DbgFuncEntry();
+
+	DbgPrintf("meter_uart_device = %s\r\n",uart_params.meter_uart_device);
+	DbgPrintf("meter_uart_bsp = %d\r\n",uart_params.meter_uart_bps);
+
+	DbgPrintf("toplight_uart_device = %s\r\n",uart_params.toplight_uart_device);
+	DbgPrintf("toplight_uart_bps = %d\r\n",uart_params.toplight_uart_bps);
+
+	DbgPrintf("tsm_uart_device = %s\r\n",uart_params.tsm_uart_device);
+	DbgPrintf("tsm_uart_bps = %d\r\n",uart_params.tsm_uart_bps);
+
+	DbgPrintf("gps_uart_device = %s\r\n",uart_params.gps_uart_device);
+	DbgPrintf("gps_uart_bps = %d\r\n",uart_params.gps_uart_bps);
+	
+	
+	DbgPrintf("mcu_uart_device = %s\r\n",uart_params.mcu_uart_device);
+	DbgPrintf("mcu_uart_bps = %d\r\n",uart_params.mcu_uart_bps);
+	
+	DbgPrintf("gprs_uart_device = %s\r\n",uart_params.gprs_uart_device);
+	DbgPrintf("gprs_uart_bps = %d\r\n",uart_params.gprs_uart_bps);
+	
+	DbgPrintf("inspect_uart_device = %s\r\n",uart_params.inspect_uart_device);
+	DbgPrintf("inspect_uart_bps = %d\r\n",uart_params.inspect_uart_bps);
+	
+	DbgFuncExit();
+}
+
+
+
+//-----
+static socket_params_t  socket_params;
+
+static unsigned char * socket_params_point[] = 
+{
+	(unsigned char *)socket_params.main_server_ip,
+	(unsigned char *)&socket_params.main_server_port,
+
+	(unsigned char *)socket_params.vice_server_ip,
+	(unsigned char *)&socket_params.vice_server_port,
+
+	(unsigned char *)socket_params.ui_server_ip,
+	(unsigned char *)&socket_params.ui_server_port,
+
+	(unsigned char *)socket_params.auth_server_ip,
+	(unsigned char *)&socket_params.auth_server_port,	
+};
+
+static char * socket_params_type[] = 
+{
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+
+	"STRING",
+	"DWORD",
+};
+
+/** 
+* @brief	从xml    文件中获取socket  ip/port 参数
+*
+*/
+void init_socket_params(void)
+{
+	bool ret;
+	char path[MAX_PATH_CHARS_SIZE];
+
+	DbgFuncEntry();
+
+	build_db_path(path,SOCKET_FILE);
+	ret = xml2data(path,socket_params_point);
+	if(!ret)
+	{
+		memset(&socket_params,0x00,sizeof(socket_params_t));				
+
+		strcpy((char *)socket_params.main_server_ip,MAIN_SERVER_IP_ADDR);
+		socket_params.main_server_port = MAIN_SERVER_PORT;
+
+		strcpy((char *)socket_params.vice_server_ip,AUX_SERVER_IP_ADDR);
+		socket_params.vice_server_port = AUX_SERVER_PORT;
+		
+		strcpy((char *)socket_params.ui_server_ip,UI_SERVER_IP_ADDR);
+		socket_params.ui_server_port = UI_SERVER_PORT;
+
+		strcpy((char *)socket_params.auth_server_ip,AUTH_SERVER_IP_ADDR);
+		socket_params.auth_server_port = AUTH_SERVER_PORT;
+
+		DbgPrintf("list size = %d\r\n",ARRAY_SIZE(socket_params_point));
+	
+		init_xml(SOCKET_FILE,socket_params_point,socket_params_type,ARRAY_SIZE(socket_params_point));
+	}
+
+	fleety_modify_server_ip(MAIN_SOCKET,socket_params.main_server_ip,socket_params.main_server_port);
+	fleety_modify_server_ip(AUX_SOCKET,socket_params.vice_server_ip,socket_params.vice_server_port);
+	fleety_modify_server_ip(UI_SOCKET,socket_params.ui_server_ip,socket_params.ui_server_port);
+	
+	debug_socket_params();
+
+	DbgFuncExit();
+}
+
+
+socket_params_t * get_socket_params(void)
+{
+	return &socket_params;
+}
+
+/** 
+* @brief	 将socket   参数写入xml  文件
+*
+*/
+void set_socket_params(void)
+{
+	char path[MAX_PATH_CHARS_SIZE];
+
+	build_db_path(path,SOCKET_FILE);
+	data2xml(path,socket_params_point);
+}
+
+void debug_socket_params(void)
+{
+	DbgFuncEntry();
+
+	DbgPrintf("main_server_ip = %s\r\n",socket_params.main_server_ip);
+	DbgPrintf("main_server_port = %d\r\n",socket_params.main_server_port);
+
+	DbgPrintf("vice_server_ip = %s\r\n",socket_params.vice_server_ip);
+	DbgPrintf("vice_server_port = %d\r\n",socket_params.vice_server_port);
+
+	DbgPrintf("ui_server_ip = %s\r\n",socket_params.ui_server_ip);
+	DbgPrintf("ui_server_port = %d\r\n",socket_params.ui_server_port);
+	
+	DbgPrintf("auth_server_ip = %s\r\n",socket_params.auth_server_ip);
+	DbgPrintf("auth_server_port = %d\r\n",socket_params.auth_server_port);
+	
+	DbgFuncExit();
+}
+
 
 //-----
 static setting_params_t  setting_params;
@@ -267,9 +543,6 @@ static char * setting_params_type[] =
 };
 
 
-
-
-
 /** 
 * @brief	从xml    文件中获取国标参数，如果没对应xml   文件，则第一次创建
 *
@@ -277,10 +550,12 @@ static char * setting_params_type[] =
 void init_setting_params(void)
 {
 	bool ret;
+	char path[MAX_PATH_CHARS_SIZE];
 
 	DbgFuncEntry();
 
-	ret = xml2data(SETTING_FILE,setting_params_point);
+	build_db_path(path,SETTING_FILE);
+	ret = xml2data(path,setting_params_point);
 	if(!ret)
 	{
 		memset(&setting_params,0x00,sizeof(setting_params_t));
@@ -291,15 +566,20 @@ void init_setting_params(void)
 		setting_params.tcp_msg_retry_count = 3;
 				
 
-		strcpy((char *)setting_params.main_server_ipaddr,main_server_ip_addr);
-		setting_params.main_server_tcp_port = main_server_port;
-		strcpy((char *)setting_params.vice_server_ipaddr,aux_server_ip_addr);
-		setting_params.vice_server_tcp_port = aux_server_port;
+		strcpy((char *)setting_params.main_server_ipaddr,MAIN_SERVER_IP_ADDR);
+		setting_params.main_server_tcp_port = MAIN_SERVER_PORT;
+		strcpy((char *)setting_params.vice_server_ipaddr,AUX_SERVER_IP_ADDR);
+		setting_params.vice_server_tcp_port = AUX_SERVER_PORT;
 
 		setting_params.location_report_policy = 0;
 		setting_params.location_report_scheme = 0;
+        setting_params.time_report_alarm_interval = 5;
 		setting_params.time_report_accon_interval = 30;
-		setting_params.time_report_accoff_interval = 300;
+		setting_params.time_report_accoff_interval = 20;
+        setting_params.time_report_idle_interval = 20;
+        setting_params.time_idle_after_accoff = 2*3600;
+		setting_params.max_time_talk_once = 24*3600;
+		setting_params.max_time_talk_month = 30*24*3600;
 
 		DbgPrintf("list size = %d\r\n",ARRAY_SIZE(setting_params_point));
 	
@@ -320,8 +600,17 @@ setting_params_t * get_setting_params(void)
 void set_setting_params(void)
 {
 	// 写入xml  文件
-	data2xml(SETTING_FILE,setting_params_point);
+	char path[MAX_PATH_CHARS_SIZE];
+
+	build_db_path(path,SETTING_FILE);
+	data2xml(path,setting_params_point);
 }
+
+void export_setting_params(char *path)
+{
+	data2xml(path,setting_params_point);
+}
+
 
 void debug_setting_params(void)
 {

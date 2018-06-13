@@ -44,10 +44,10 @@ typedef struct {
 typedef  struct
 {
 	unsigned char start_magic_id;
-    gb905_header_t header;
+	gb905_header_t header;
 	operation_body_t operation_body;
-    unsigned char xor;
-    unsigned char end_magic_id;
+	unsigned char xor;
+	unsigned char end_magic_id;
 } __packed gb905_operation_t;
 
 void gb905_build_pre_operation(int phase);

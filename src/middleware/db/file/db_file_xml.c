@@ -34,16 +34,18 @@
 * @param type_list		保存参数各字段类型的字符指针数组
 * 
 */
-void init_xml(const char* name,unsigned char * addr_list[],char * type_list[],int size)
+void init_xml(char* path,unsigned char * addr_list[],char * type_list[],int size)
 {
 	int i;
 	char temp[32];
 	FILE *fp;
-	char path[MAX_PATH_CHARS_SIZE];
+	//char path[MAX_PATH_CHARS_SIZE];
 
 	DbgFuncEntry();
 
-	build_file_path(path,name);
+	//build_file_path(path,name);
+	
+	//build_db_path(path,name);
 	DbgPrintf("path = %s\r\n",path);
 
 	fp = fopen(path,"w");
@@ -108,10 +110,10 @@ void init_xml(const char* name,unsigned char * addr_list[],char * type_list[],in
 * 
 * @return  返回保存是否成功
 */
-bool xml2data(const char* name,unsigned char * addr_list[])
+bool xml2data(char* path,unsigned char * addr_list[])
 {
 	FILE *fp;
-	char path[MAX_PATH_CHARS_SIZE];
+	//char path[MAX_PATH_CHARS_SIZE];
 
 	unsigned int id;
 	const char * type;
@@ -120,8 +122,8 @@ bool xml2data(const char* name,unsigned char * addr_list[])
 		
 	DbgFuncEntry();
 		
-	build_file_path(path,name);
-	DbgPrintf("path = %s\r\n",path);
+	//build_file_path(path,name);
+	//DbgPrintf("path = %s\r\n",path);
 
 	if(!is_file_exist(path))
 	{
@@ -196,10 +198,10 @@ bool xml2data(const char* name,unsigned char * addr_list[])
 * 
 * @return  返回保存是否成功
 */
-bool data2xml(const char* name,unsigned char * addr_list[])
+bool data2xml(char* path,unsigned char * addr_list[])
 {
 	FILE *fp;
-	char path[MAX_PATH_CHARS_SIZE];
+	//char path[MAX_PATH_CHARS_SIZE];
 
 	unsigned int id;
 	const char * type;
@@ -209,7 +211,7 @@ bool data2xml(const char* name,unsigned char * addr_list[])
 	
 	DbgFuncEntry();
 
-	build_file_path(path,name);
+	//build_file_path(path,name);
 	DbgPrintf("path = %s\r\n",path);
 	
 	if(!is_file_exist(path))

@@ -22,11 +22,16 @@
 extern "C" {
 #endif
 
-#define		MAX_PATH_CHARS_SIZE			256
-
-
 void build_file_path(char * path,const char * name);
 
+void build_db_path(char * path,const char * name);
+void build_export_path(char * path,const char * name);
+
+
+void build_photo_name(char * name,unsigned int id);
+void build_photo_path(char * path,const char * name);
+
+void build_status_path(char * path,const char * name);
 #ifdef __cplusplus
 }
 #endif

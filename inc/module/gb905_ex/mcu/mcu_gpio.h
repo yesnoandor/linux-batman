@@ -23,6 +23,7 @@
 extern "C" {
 #endif
 
+void mcu_gpo_output(int index,int level);
 
 void mcu_send_gpio_out(unsigned int out);
 unsigned char mcu_gpio_in_treat(unsigned char *buf,int len);

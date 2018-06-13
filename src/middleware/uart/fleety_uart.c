@@ -21,9 +21,13 @@
 #include	"event2/buffer.h" 
 #include	"event2/util.h"
 #include	"event2/thread.h"
+
+#include	"misc/misc.h"
 		
 #include	"module/gb905/gb905_common.h"
 //#include	"module/gb905/heart_beat/gb905_heart_beat.h"
+#include	"module/gb905/inspection/gb905_inspection.h"
+
 
 #include	"module/gb905_peri/gb905_peri_common.h"
 #include	"module/gb905_peri/meter/gb905_meter.h"
@@ -38,7 +42,7 @@
 
 #include	"middleware/uart/fleety_uart.h"
 		
-//#define		DEBUG_Y
+#define	DEBUG_Y
 #include	"libs/debug.h"
 
 
@@ -48,6 +52,9 @@ typedef	void(*PTR_UART_EVENT_CB)(struct bufferevent *, short, void *);
 typedef struct {
 	struct bufferevent* bev;
 	int state;		// =0,closed; =1,opened
+
+	int fd;
+	int mode;		// =0,async; =1,sync
 }FleetyUartMngr;
 
 typedef struct{
@@ -59,15 +66,23 @@ typedef struct{
 	int timeout;
 }fleety_uart_params_t;
 
+static char meter_uart_dev_name[32];
+static char toplight_uart_dev_name[32];
+static char tsm_uart_dev_name[32];
+static char gps_uart_dev_name[32];
+static char mcu_uart_dev_name[32];
+static char gprs_uart_dev_name[32];
+static char inspect_uart_dev_name[32];
 
 static char * uart_device[] = 
 {
-	meter_uart_device,
-	toplight_uart_device,
-	tsm_uart_device,
-	gps_uart_device,
-	mcu_uart_device,
-	gprs_uart_device
+	meter_uart_dev_name,
+	toplight_uart_dev_name,
+	tsm_uart_dev_name,
+	gps_uart_dev_name,
+	mcu_uart_dev_name,
+	gprs_uart_dev_name,
+	inspect_uart_dev_name
 };
 
 
@@ -75,22 +90,25 @@ static char * uart_device[] =
 static fleety_uart_params_t termios_params[] =
 {
 	{
-		meter_uart_bps,8,1,'N',0,		// meter params
+		METER_UART_DEV_BPS,8,1,'N',0,		// meter params
 	},
 	{
-		toplight_uart_bps,8,1,'N',0,	// toplight params
+		TOPLIGHT_UART_DEV_BPS,8,1,'N',0,	// toplight params
 	},
 	{
-		tsm_uart_bps,8,1,'N',0,			// tsm params
+		TSM_UART_DEV_BPS,8,1,'N',0,			// tsm params
 	},
 	{
-		gps_uart_bps,8,1,'N',0,			// gps params
+		GPS_UART_DEV_BPS,8,1,'N',0,			// gps params
 	},
 	{
-		mcu_uart_bps,8,1,'N',0,			// stm32 params
+		MCU_UART_DEV_BPS,8,1,'N',0,			// stm32 params
 	},
 	{
-		gprs_uart_bps,8,1,'N',0,			// gprs params
+		GPRS_UART_DEV_BPS,8,1,'N',0,		// gprs params
+	},
+	{
+		INSPECT_UART_DEV_BPS,8,1,'N',0,		// inspect params
 	},
 };
 
@@ -113,6 +131,8 @@ static void stm32_uart_read_cb(struct bufferevent* bev, void* arg);
 static void stm32_uart_event_cb(struct bufferevent *bev, short event, void *arg);
 static void gprs_uart_read_cb(struct bufferevent* bev, void* arg);
 static void gprs_uart_event_cb(struct bufferevent *bev, short event, void *arg);
+static void inspect_uart_read_cb(struct bufferevent* bev, void* arg);
+static void inspect_uart_event_cb(struct bufferevent *bev, short event, void *arg);
 
 
 static PTR_UART_MSG_CB uart_read_cb[] = 
@@ -123,6 +143,7 @@ static PTR_UART_MSG_CB uart_read_cb[] =
 	gps_uart_read_cb,
 	stm32_uart_read_cb,
 	gprs_uart_read_cb,
+	inspect_uart_read_cb,
 };
 
 static PTR_UART_EVENT_CB uart_event_cb[] = 
@@ -133,6 +154,7 @@ static PTR_UART_EVENT_CB uart_event_cb[] =
 	gps_uart_event_cb,
 	stm32_uart_event_cb,
 	gprs_uart_event_cb,
+	inspect_uart_event_cb,
 };
 
 
@@ -239,31 +261,40 @@ static bool uart_set_params(int fd,fleety_uart_params_t * params)
 // 接收到服务器网络输入的处理回调函数
 static void meter_uart_read_cb(struct bufferevent* bev, void* arg)  
 {
+	long index;
 	unsigned char msg[1024];
 	int len =0,offset=0;
 	struct evbuffer *input;
 
 	DbgFuncEntry();
 
-	//len = bufferevent_read(bev, msg, sizeof(msg));
+	index = (long)arg;
+	DbgPrintf("index = %d\r\n",index);
 
-	input = bufferevent_get_input(bev);
-	len = evbuffer_copyout(input, msg, sizeof(msg));
-
-	#if 0
+	// async mode
+	if(uart_mngr_list[index].mode == 0)
 	{
-		int i;
-		DbgPrintf("len = %d\r\n",len);
-		for(i =0;i<len;i++)
+
+		//len = bufferevent_read(bev, msg, sizeof(msg));
+
+		input = bufferevent_get_input(bev);
+		len = evbuffer_copyout(input, msg, sizeof(msg));
+
+		#if 0
 		{
-			DbgPrintf("msg[%d] = 0x%x\r\n",i,msg[i]);
+			int i;
+			DbgPrintf("len = %d\r\n",len);
+			for(i =0;i<len;i++)
+			{
+				DbgPrintf("msg[%d] = 0x%x\r\n",i,msg[i]);
+			}
 		}
+		#endif
+		
+		offset = gb905_meter_protocol_ayalyze(msg,len);
+		evbuffer_drain(input,offset);
+		DbgPrintf("offset = %d\r\n",offset);
 	}
-	#endif
-	
-	offset = gb905_meter_protocol_ayalyze(msg,len);
-	evbuffer_drain(input,offset);
-	DbgPrintf("offset = %d\r\n",offset);
 	
 	DbgFuncExit(); 
 }
@@ -279,7 +310,6 @@ static void meter_uart_event_cb(struct bufferevent *bev, short event, void *arg)
 	index = (long)arg;
 
 	DbgPrintf("index = %d\r\n",index);
-	
 	
 	if (event & BEV_EVENT_EOF)
 		DbgPrintf("meter uart closed!\r\n");
@@ -579,6 +609,62 @@ static void gprs_uart_event_cb(struct bufferevent *bev, short event, void *arg)
 	DbgFuncExit();
 }
 
+static void inspect_uart_read_cb(struct bufferevent* bev, void* arg)  
+{
+	unsigned char msg[1024];
+	int len = 0;
+	//int offset = 0;
+	struct evbuffer *input;
+
+	DbgFuncEntry();
+
+	//len = bufferevent_read(bev, msg, sizeof(msg));
+	input = bufferevent_get_input(bev);
+	len = evbuffer_copyout(input, msg, sizeof(msg));
+
+	#if 1
+	{
+		int i;
+		DbgPrintf("len = %d\r\n",len);
+		for(i =0;i<len;i++)
+		{
+			DbgPrintf("msg[%d] = 0x%x\r\n",i,msg[i]);
+		}
+	}
+	#endif
+	
+	gb905_inspection_device_treat(msg,len);
+	
+	evbuffer_drain(input,len);
+
+	//DbgPrintf("size = %d\r\n",offset);
+	 
+	DbgFuncExit();
+}
+
+static void inspect_uart_event_cb(struct bufferevent *bev, short event, void *arg)  
+{
+	long index;
+	
+	DbgFuncEntry();
+
+	index = (long)arg;
+
+	DbgPrintf("index = %d\r\n",index);
+	
+	if (event & BEV_EVENT_EOF)
+		DbgPrintf("inspect uart closed!\r\n");
+	else if (event & BEV_EVENT_ERROR)
+		DbgPrintf("inspect uart some other error\n");
+
+	// 自动close 套接字和free  读写缓冲区  
+	bufferevent_free(bev);
+
+	uart_mngr_list[index].bev = NULL;
+	uart_mngr_list[index].state = 0;
+	
+	DbgFuncExit();
+}
 
 
 //  串口定时器事件回调函数
@@ -675,6 +761,8 @@ static void * fleety_uart_loop_func(void *arg)
 	
 		uart_mngr_list[i].bev = bev;
 		uart_mngr_list[i].state = 1;
+		uart_mngr_list[i].fd = fd;
+		uart_mngr_list[i].mode = 0;
 	}
 	
 	struct event *timeout = NULL;
@@ -746,8 +834,69 @@ void fleety_uart_send(int index,unsigned char *buff,int len)
 		}
 	}
 
-	bufferevent_write(uart_mngr_list[index].bev,buff,len);
+	if(uart_mngr_list[index].mode == 0)
+	{
+		bufferevent_write(uart_mngr_list[index].bev,buff,len);
+	}
+	
+	DbgFuncExit();
+}
 
+int fleety_uart_sync_init(int index)
+{
+	int fd = 0;
+
+	if(strcmp(uart_device[index],"") == 0)
+	{
+		return fd;
+	}
+
+	fd = open(uart_device[index], O_RDWR);
+	if(fd < 0)
+	{
+		DbgError("open device:%s error(err = %s)\r\n",uart_device[index],strerror(errno));
+		return fd;
+	}
+		
+	uart_set_params(fd,&termios_params[index]);
+
+	return fd;
+}
+
+int fleety_uart_set_mode(int index,int mode)
+{
+	unsigned char msg[1024];
+
+	// async --> sync
+	if(uart_mngr_list[index].mode == 0 && mode == 1)
+	{
+		uart_mngr_list[index].mode = mode;
+		bufferevent_read(uart_mngr_list[index].bev,msg,sizeof(msg));
+	}
+	else
+	{
+		uart_mngr_list[index].mode = mode;
+	}
+	
+	return uart_mngr_list[index].fd;
+}
+
+void fleety_modify_uart_device(unsigned char index,char * uart_name,int uart_bps)
+{
+	DbgFuncEntry();
+
+	if(index < ARRAY_SIZE(uart_device))
+	{
+		strcpy(uart_device[index],uart_name);
+		termios_params[index].bps = uart_bps;
+	}
+	else
+	{
+		DbgError("error uart index(%d)\r\n",index);
+	}
+
+	debug_uart_params();
+	
 	DbgFuncExit();
 }
 

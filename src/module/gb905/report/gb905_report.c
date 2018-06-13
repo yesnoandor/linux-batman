@@ -24,7 +24,11 @@
 #include	"middleware/info/gps.h"
 #include	"middleware/info/status.h"
 #include	"middleware/socket/fleety_socket.h"
-	
+
+#include	"middleware/db/sqlite3/report_sqlite3.h"
+
+#include	"app/record/fleety_record.h"
+
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -55,8 +59,10 @@ void gb905_build_report_body(report_body_t * report_body)
 	report_body->status.whole = 0;
 
 	report_body->status.flag.fix = gps_info.fixed;
-	report_body->status.flag.lat = gps_info.latitude < 0 ? 1 : 0; 	// 南纬是负，北纬是正，
+	report_body->status.flag.lat = gps_info.latitude < 0 ? 1 : 0; 	// 南纬是负，北纬是正
 	report_body->status.flag.lon = gps_info.longitude < 0 ? 1 : 0;	// 东经是正，西经是负
+	report_body->status.flag.weighting = taxi_status.status.flag.weighting;
+	report_body->status.flag.emptying = taxi_status.status.flag.emptying;
 	report_body->status.flag.acc = taxi_status.hw.flag.acc;
 	report_body->status.flag.loading = taxi_status.hw.flag.loading;
 	report_body->status.flag.oil = taxi_status.hw.flag.oil;
@@ -108,9 +114,9 @@ void gb905_report_send(void)
 	
 	gb905_send_data(MAIN_SOCKET,(unsigned char *)&gb905_report,sizeof(gb905_report_t));
 
-	//gb905_record_msg(MAIN_SOCKET,&gb905_location_report.header,(unsigned char *)&gb905_location_report,sizeof(gb905_location_report_t));
+	gb905_record_msg(MAIN_SOCKET,&gb905_report.header,(unsigned char *)&gb905_report,sizeof(gb905_report_t));
 
-	//report_insert_record(EndianReverse16(gb905_location_report.header.msg_serial_number),(unsigned char *)&gb905_location_report,sizeof(gb905_location_report_t));
+	report_sqlite3_insert_record(EndianReverse16(gb905_report.header.msg_serial_number),(unsigned char *)&gb905_report,sizeof(gb905_report_t));
 
 	DbgFuncExit();
 }

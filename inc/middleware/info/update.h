@@ -22,10 +22,15 @@
 extern "C" {
 #endif
 
-void get_update_info(unsigned char * device_info);
-void set_update_info(unsigned char * device_info);
 
+void get_update_param(unsigned char * buf);
+void set_update_param(unsigned char * buf);
 
+void get_update_info(unsigned char * buf);
+void set_update_info(unsigned char * buf);
+
+unsigned char get_update_result(void);
+void set_update_result(unsigned char result);
 
 #ifdef __cplusplus
 }

@@ -19,6 +19,8 @@
 #include	"libs/mxml.h"
 
 #include	"middleware/info/setting.h"
+#include	"middleware/info/product.h"
+
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -167,7 +169,10 @@ int demo_mxml(void)
 	//traverse_mxml();
 	//replace_mxml();
 
-	init_setting_params();
+	//init_setting_params();
+	//init_product_params();
+	//init_socket_params();
+	init_uart_params();
 
 	#if 0
 	FILE *fp;

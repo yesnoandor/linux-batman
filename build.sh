@@ -4,14 +4,14 @@
 readonly usage="\
 
 Usage: 
-	$0 [<platform>]
+	$0 [<platform>] 2>&1 | tee build.log
 	$0
 
 Examples:
-	$0 ubuntu
-	$0 qcom
-	$0 mtk
-	$0 hw
+	$0 ubuntu 2>&1 | tee build.log
+	$0 qcom 2>&1 | tee build.log
+	$0 mtk 2>&1 | tee build.log
+	$0 hw 2>&1 | tee build.log
 	$0 all
 	$0 clean
 "
@@ -30,7 +30,7 @@ function build_ubuntu()
 	sleep 1
 	
 	core=$(grep 'processor' /proc/cpuinfo | sort -u | wc -l)
-	make platform=ubuntu -j$core
+	make platform=ubuntu -j$core debug=y 
 	
 	echo "build ubuntu::----------"
 }
@@ -90,9 +90,19 @@ function build_all()
 	echo "build all::++++++++++"
 
 	build_ubuntu
+	build_hw
 	build_qcom
 	
 	echo "build all::----------"
+}
+
+function build_clean()
+{
+	echo "build clean::++++++++++"
+
+	rm -rf ./out
+	
+	echo "build clean::----------"
 }
 
 # 解析编译命令
@@ -116,6 +126,9 @@ function build_parse()
 			;;
 		all)
 			build_all
+			;;
+		clean)
+			build_clean
 			;;
 		*)
 			echo "wrong platform: $i"

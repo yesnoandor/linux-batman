@@ -22,9 +22,9 @@
 extern "C" {
 #endif
 
-void init_xml(const char* name,unsigned char * addr_list[],char * type_list[],int size);
-bool xml2data(const char* name,unsigned char * addr_list[]);
-bool data2xml(const char* name,unsigned char * addr_list[]);
+void init_xml(char* path,unsigned char * addr_list[],char * type_list[],int size);
+bool xml2data(char* path,unsigned char * addr_list[]);
+bool data2xml(char* path,unsigned char * addr_list[]);
 
 
 #ifdef __cplusplus

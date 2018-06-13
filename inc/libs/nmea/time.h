@@ -32,8 +32,7 @@ typedef struct _nmeaTIME
     int     min;        /**< Minutes after the hour - [0,59] */
     int     sec;        /**< Seconds after the minute - [0,59] */
     int     hsec;       /**< Hundredth part of second - [0,99] */
-
-} nmeaTIME;
+}nmeaTIME;
 
 /**
  * \brief Get time now to nmeaTIME structure

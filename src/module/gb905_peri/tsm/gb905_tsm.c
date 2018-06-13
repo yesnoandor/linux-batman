@@ -25,13 +25,26 @@
 
 #include	"module/gb905/gb905_common.h"
 //#include	"module/gb905/report/gb905_report.h"
+#include	"module/gb905/inspection/gb905_inspection.h"
 #include	"module/gb905_peri/gb905_peri_common.h"
 #include	"module/gb905_peri/meter/gb905_meter.h"
 #include	"module/gb905_peri/toplight/gb905_toplight.h"
 #include	"module/gb905_peri/tsm/gb905_tsm.h"
 
+#include	"module/gb905_ex/ui/ui_common.h"
+#include	"module/gb905_ex/ui/ui_notice.h"
+
+#include	"module/gb905_update/gb905_update_common.h"
+#include	"module/gb905_update/tsm/gb905_update_tsm.h"
+
+
 #include	"middleware/info/status.h"
 #include	"middleware/info/setting.h"
+#include	"middleware/info/update.h"
+#include	"middleware/info/driver.h"
+#include	"middleware/info/notice.h"
+#include	"middleware/info/product.h"
+
 #include	"middleware/uart/fleety_uart.h"
 
 #define		DEBUG_Y
@@ -39,7 +52,6 @@
 
 
 #define		TSM_TYPE_ID					0x03
-#define		TSM_VENDOR_ID				0x01
 
 #define		TSM_COMMAND_QUERY_STATUS	0x0000		// 查询TSM 	 模块运行状态
 #define		TSM_COMMAND_RESET			0x0001		// 复位TSM  模块 
@@ -73,11 +85,47 @@
 #define		TSM_ACK_DECRYP_LEN_ERR		0x22F0		// 数据长度不正确，解码失败
 
 
+#define	TSM_REMIND_INFO	"卡片不存在，请刷司机卡！"
+
+static int tsm_heart_beat_count = 0;
+#define TSM_HEART_BEAT_THREHOLD         5
+
 static void gb905_tsm_build_header(gb905_peri_header_t* header,unsigned short cmd,unsigned short len)
 {
+	product_params_t product_params;
+	
+	get_product_params((unsigned char *)&product_params);
+
 	header->type = TSM_TYPE_ID;
-	header->vendor = TSM_VENDOR_ID;
+	header->vendor = product_params.tsm_vendor_id;
 	gb905_peri_build_header(header,cmd,len);
+}
+
+
+
+static void gb905_tsm_build_update_body(gb905_tsm_update_body_t * body)
+{
+	gb905_update_info_t update_info;
+			
+	DbgFuncEntry();
+
+	get_update_info((unsigned char *)&update_info);
+	
+	body->vendor_id = update_info.base_info.vendor_id;
+	body->hw_version = update_info.hw_version;
+	body->main_sw_version = update_info.sw_version[0];
+	body->vice_sw_version = update_info.sw_version[1];
+
+	DbgFuncExit();
+}
+
+/** 
+* @brief 	TSM  模块收到升级应答的处理
+*
+*/
+static void gb905_tsm_update_ack_treat(unsigned char *buf,int len)
+{
+	gb905_update_tsm_start();
 }
 
 
@@ -112,7 +160,7 @@ static bool gb905_tsm_common_command(unsigned short cmd)
 	gb905_tsm_build_header(tsm_header,cmd,sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
 	
 	tsm_tail = (gb905_peri_tail_t *)(buf + sizeof(gb905_peri_header_t));
-	xor = xor8_computer(buf + offsetof(gb905_peri_header_t,len),sizeof(gb905_peri_bcd_timestamp_t) + sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,len));
+	xor = xor8_computer(buf + offsetof(gb905_peri_header_t,len), sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,len));
 	gb905_peri_build_tail(tsm_tail,xor);
 	
 	fleety_uart_send(TSM_UART,buf,len);
@@ -173,7 +221,15 @@ static void gb905_tsm_query_state_treat(unsigned char * buf,unsigned short len)
 	DbgPrintf("tsm_status->device_status = 0x%02x\r\n",tsm_status->device_status);
 	DbgPrintf("------------------------------------\r\n");
 
-	//Set_inspection_data(GB905_TSM_TYPE,(unsigned char *)tsm_status,len);
+	//在巡检状态(避免与判断是否连接冲突)
+	if(get_tsm_insp_status())
+	{
+		gb905_inspection_set_ack_info(GB905_DEVICE_TSM,buf,len);
+		set_tsm_insp_status(false);
+	}
+
+    tsm_heart_beat_count = 0;
+    
 	DbgFuncExit();
 }
 
@@ -192,7 +248,7 @@ static void gb905_tsm_parse_heart_beat(unsigned char *buf,unsigned short len)
 
 	DbgPrintf(" extend info = %s",&tsm_heart_beat->extend);
 
-	//set_tsm_status_connect();
+	
 	DbgFuncExit();
 }
 
@@ -295,7 +351,8 @@ static void gb905_tsm_driver_info_treat(unsigned char* buf,unsigned short data_l
 		driver_info->card_number[3],driver_info->card_number[4],driver_info->card_number[5]);
 	DbgPrintf("tsm driver info : return_result = 0x%02x 0x%02x \r\n ",driver_info->return_result[0],driver_info->return_result[1]);
 
-
+	set_driver_info(buf);
+	
 	set_driver_license_number(driver_info->quailficantion_number,sizeof(driver_info->quailficantion_number));
 
 	DbgFuncExit();
@@ -379,7 +436,8 @@ static bool gb905_tsm_parse_header(buff_mgr_t * msg)
 {
 	bool ret = true;
 	gb905_peri_header_t * header;
-
+	product_params_t product_params;
+	
 	DbgFuncEntry();
 
 	header = (gb905_peri_header_t *)(msg->buf);
@@ -409,9 +467,12 @@ static bool gb905_tsm_parse_header(buff_mgr_t * msg)
 		return ret;
 	}
 
+	
+	get_product_params((unsigned char *)&product_params);
+
 	DbgPrintf("vendor = 0x%04x\r\n",header->vendor);
 	
-	if( header->vendor != TSM_VENDOR_ID )
+	if( header->vendor != product_params.tsm_vendor_id)
 	{
 		DbgError("tsm ternimal id is error!\r\n");
 		
@@ -474,21 +535,27 @@ static int gb905_tsm_parse_protocol(buff_mgr_t * msg)
 
 		case TSM_COMMAND_RESET:
 		case TSM_COMMAND_SET_BAUDRATE:
-		case TSM_COMMAND_UPGRADE:
 			ack = msg->buf + sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,vendor);
 			gb905_tsm_common_ack_treat(ack);
 			break;
 
+		
+		
+		case TSM_COMMAND_UPGRADE:
+			gb905_tsm_update_ack_treat(tsm_data,tsm_data_len);
+			break;
+			
 		case TSM_COMMAND_DRIVER_INFO:
 			if(tsm_data_len == 0x02)		// --???? 
 			{
 				DbgError(" can not find the card  !\r\n");
 				DbgError(" tsm get driver information return error !\r\n");
-			}
+                ui_send_terminal_remind((unsigned char*)TSM_REMIND_INFO,sizeof(TSM_REMIND_INFO));
+            }
 			else
 			{
 				gb905_tsm_driver_info_treat(tsm_data,tsm_data_len);
-				gb905_meter_open_ack();
+				gb905_meter_open_close_ack();
 			}
 			break;
 
@@ -583,6 +650,8 @@ bool gb905_tsm_query_state(void)
 
 	free(buf);
 
+    tsm_heart_beat_count++;
+        
 	DbgFuncExit();
 
 	return true;
@@ -866,6 +935,58 @@ int gb905_tsm_protocol_ayalyze(unsigned char * buf,int len)
 	}while(offset && tsm_buf.raw.len && msg_len > 0);
 	
 	return (len - msg_len);
+
+	DbgFuncExit();
+}
+
+
+void gb905_tsm_heart_beat_treat(void)
+{
+    taxi_status_t status;
+    taxi_get_status(&status);
+	
+    if(tsm_heart_beat_count > TSM_HEART_BEAT_THREHOLD)
+	{
+        //如果不在报警状态，则设置报警状态
+        if(!status.alarm.flag.tsm_fault)
+        {
+            set_tsm_alarm_status();
+        }
+        
+        DbgError("GB905 TSM Heart Beat Timeout!\r\n");
+	}
+    else
+    {
+        //如果在报警状态，则清除报警状态
+        if(status.alarm.flag.tsm_fault)
+        {
+            clr_tsm_alarm_status();
+        }
+    }
+}
+
+/** 
+* @brief 	向TSM   模块发送升级命令
+*
+*/
+void gb905_tsm_update(void)
+{
+	unsigned char *buf;
+	unsigned char xor;
+
+	gb905_tsm_update_t tsm_update;
+
+	DbgFuncEntry();
+	
+	buf = (unsigned char *)&tsm_update;
+	gb905_tsm_build_header(&tsm_update.header,TSM_COMMAND_UPGRADE,sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
+
+	gb905_tsm_build_update_body(&tsm_update.body);
+	
+	xor = xor8_computer(buf + offsetof(gb905_peri_header_t,len),sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,len));
+	gb905_peri_build_tail(&tsm_update.tail,xor);
+
+	fleety_uart_send(TSM_UART,buf,sizeof(gb905_tsm_update_t));
 
 	DbgFuncExit();
 }

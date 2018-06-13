@@ -30,12 +30,14 @@ extern "C" {
 #include	<sys/stat.h>			// 获取文件属性
 
 #include	<netinet/in.h>  
+
 #include	<arpa/inet.h>  
 #include	<errno.h>  
 #include	<unistd.h>  			// unix 系统服务函数定义
 #include 	<dirent.h>				// unix类目录操作的头文件
 #include	<termios.h>				// 终端控制定义
 #include	<fcntl.h>				// 文件控制定义
+#include 	<netdb.h>
 
   
 #include	<stdio.h>  
@@ -46,6 +48,7 @@ extern "C" {
 #include 	<pthread.h>
 
 #include	<linux/input.h>
+#include	<linux/netlink.h>
 
 #include	"platform/platform.h"
 
@@ -54,6 +57,8 @@ extern "C" {
 #define		MAX_HW_VERSION_SIZE		14
 #define		MAX_SW_VERSION_SIZE		14
 
+#define		MAX_PATH_CHARS_SIZE		256
+#define		MAX_CMD_CHARS_SIZE		80
 
 typedef struct{
 	unsigned char * buf;					

@@ -20,6 +20,8 @@
 
 #include	"module/gb905_peri/tsm/gb905_tsm.h"
 #include	"module/gb905_peri/meter/gb905_meter.h"
+#include	"module/gb905_peri/toplight/gb905_toplight.h"
+
 #include	"module/gb905/transparent/gb905_transparent.h"
 
 #include	"middleware/socket/fleety_socket.h"
@@ -108,14 +110,13 @@ void gb905_transparent_download_treat(unsigned char *buf,int len)
 				break;
 				
 			case GB905_DEVICE_TSM:
-				//fleety_uart_send(TSM_UART,data_prt,data_len);
 				break;
 				
 			case GB905_DEVICE_LED:
 				break;
 				
 			case GB905_DEVICE_TOPLIGHT:
-				//fleety_uart_send(TOPLIGHT_UART,data_prt,data_len);
+				gb905_toplight_transparent(data_prt,data_len);
 				break;	
 				
 			case GB905_DEVICE_EVAL_FRONT:
@@ -159,7 +160,7 @@ void gb905_transparent_download_treat(unsigned char *buf,int len)
 void gb905_transparent_upload_treat(unsigned char dev_id, unsigned char factory_id, unsigned short cmd_id, unsigned char* buf, unsigned short len)
 {
 	gb905_transparent_up_t *up_msg;
-	gb905_header_t *heard;
+	gb905_header_t *header;
 	unsigned char *data_buf;
 	unsigned char *send_buf;
 	unsigned short send_len;
@@ -174,8 +175,8 @@ void gb905_transparent_upload_treat(unsigned char dev_id, unsigned char factory_
 		DbgError("up transparent memory malloc failed!\r\n");
 		return;
 	}
-	heard = (gb905_header_t *)(send_buf+1);// 1:sizeof 7E
-	gb905_build_header(heard,MESSAGE_PERIPHERY_UP,sizeof(gb905_transparent_up_t)+len);
+	header = (gb905_header_t *)(send_buf+1);// 1:sizeof 7E
+	gb905_build_header(header,MESSAGE_PERIPHERY_UP,sizeof(gb905_transparent_up_t)+len);
 
 	up_msg = (gb905_transparent_up_t *)(send_buf+1+sizeof(gb905_header_t));
 	up_msg->device_id = dev_id;

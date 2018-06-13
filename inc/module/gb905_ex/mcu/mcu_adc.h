@@ -23,9 +23,22 @@
 extern "C" {
 #endif
 
+#define ADC_REP_TIMEOUT         10
+
+enum{
+    ADC_CHANNEL_VERSION = 0,
+    ADC_CHANNEL_BATTERY,
+    ADC_CHANNEL_ACC,
+    ADC_CHANNEL_TEMPERATURE
+};
+
 void mcu_send_adc_req(unsigned char channel);
 
 void mcu_get_adc_treat(unsigned char *buf,int len);
+
+void gb905_adc_value_monitor_treat(void);
+
+void gb905_power_off_alarm_treat(void);
 
 #ifdef __cplusplus
 }

@@ -18,6 +18,7 @@
 
 #include	"libs/fifo.h"
 
+#include	"module/gb905/gb905_common.h"
 
 #include	"middleware/info/eval.h"
 
@@ -29,6 +30,7 @@
 #include	"middleware/event/loading/fleety_loading.h"
 #include	"middleware/event/acc/fleety_acc.h"
 #include	"middleware/event/alarm/fleety_alarm.h"
+#include	"middleware/event/export/fleety_export.h"
 
 #include	"main/fleety_system.h"
 
@@ -117,7 +119,6 @@ void fleety_event_treat(void)
 				case EVAL_EVENT:
 					set_eval_state(event.param);
 					fleety_eval_treat();
-					//		gb905_take_picture(TAKE_PIC_REASON_EVALUTION);
 					break;
 					
 				case ACC_EVENT:
@@ -133,7 +134,7 @@ void fleety_event_treat(void)
 					break;
 						
 				case EXPORT_EVENT:
-					//fleety_export_treat(event.event_param);
+					fleety_export_treat(event.param);
 					break;
 							
 				case UDEV_UDISK_EVENT:

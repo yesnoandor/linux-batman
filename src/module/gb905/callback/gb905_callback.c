@@ -21,6 +21,9 @@
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/callback/gb905_callback.h"
 
+#include	"app/call/fleety_call.h"
+
+
 #define		DEBUG_Y
 #include	"libs/debug.h"
 
@@ -31,7 +34,7 @@
 // 电话回拨下发数据结构
 typedef struct{
 	unsigned char flag;								// 标志0:普通通话;1:监听
-	unsigned char phone_num[GB905_PHONE_MAX_CHAR];	//电话号码(最长为20byte)
+	char phone_num[GB905_PHONE_MAX_CHAR];			//电话号码(最长为20byte)
 }__packed gb905_callback_t;
 
 
@@ -57,14 +60,13 @@ unsigned char gb905_callback_treat(unsigned char *buf,int len)
 	//判断是否为监听(falg=0:普通通话;falg=1:监听)
 	if(callback->flag)
 	{
-		//关闭扬声器
+		fleety_call_out(callback->phone_num,CALL_TYPE_MONITOR);
 	}
 	else
 	{
-		//打开扬声器	
+		fleety_call_out(callback->phone_num,CALL_TYPE_COMMON);
 	}
 	
-	//拨打电话
 	
 	DbgFuncExit();
 

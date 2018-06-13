@@ -25,6 +25,10 @@
 
 #include	"middleware/info/eval.h"
 #include	"middleware/socket/fleety_socket.h"
+#include	"middleware/db/sqlite3/operation_sqlite3.h"
+
+#include	"app/record/fleety_record.h"
+
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -175,10 +179,10 @@ void gb905_send_operate(unsigned char * meter_buf,int meter_len)
 	gb905_send_data(MAIN_SOCKET,operation_buf,operate_len);
 
 	header = (gb905_header_t *)&operation_buf[1];
-	//gb905_record_msg(MAIN_SOCKET,header,operation_buf,operate_len);
+	gb905_record_msg(MAIN_SOCKET,header,operation_buf,operate_len);
 	
 	header->msg_serial_number = EndianReverse16(header->msg_serial_number);
-	//operation_insert_record((int)(header->msg_serial_number),operation_buf,operate_len);
+	operation_sqlite3_insert_record((int)(header->msg_serial_number),operation_buf,operate_len);
 
 	free(operation_buf);
 

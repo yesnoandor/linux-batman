@@ -54,25 +54,25 @@ ifeq ($(platform), qcom)
 	# cross compile... 
 	CROSS_COMPILE = arm-linux-androideabi-
 	CFLAGS += --sysroot=$(SYSDIR) -pie -fPIE -D PLATFORM_QCOM
-	LDFLAGS += --sysroot=$(SYSDIR) -static
+	LDFLAGS += --sysroot=$(SYSDIR) -L$(LIBDIR) -levent_core -levent_pthreads -levent_extra -lmxml -lnmea -ldebug -lfifo -llist -lnotify -lxmodem -L$(LIBSODIR) -lsqlite
 endif
 
 ifeq ($(platform), mtk)
 	CROSS_COMPILE = arm-linux-androideabi-
 	CFLAGS += --sysroot=$(SYSDIR) -pie -fPIE -D PLATFORM_MTK
-	LDFLAGS += --sysroot=$(SYSDIR) -static
+	LDFLAGS += --sysroot=$(SYSDIR) -L$(LIBDIR) -levent_core -levent_pthreads -levent_extra -lmxml -lnmea -ldebug -lfifo -llist -lnotify -lxmodem -L$(LIBSODIR) -lsqlite
 endif
 
 ifeq ($(platform), hw)
 	CROSS_COMPILE = arm-hisiv100nptl-linux-
 	CFLAGS += -D PLATFORM_HW
-	LDFLAGS += -lpthread
+	LDFLAGS += -L$(LIBDIR) -lpthread -levent_core -levent_extra -levent_pthreads -lmxml -lnmea -ldebug -lfifo -llist -lnotify -lxmodem -lgpsapp -L$(LIBSODIR) -lsqlite3 -lMdvrSdk
 endif
 
 ifeq ($(platform), ubuntu)
 	CROSS_COMPILE = 
 	CFLAGS += -D PLATFORM_UBUNTU
-	LDFLAGS += -lpthread
+	LDFLAGS += -L$(LIBDIR) -lpthread -levent_core -levent_extra -levent_pthreads -lmxml -lnmea -ldebug -lfifo -llist -lnotify -lxmodem -L$(LIBSODIR) -lsqlite3
 endif
 
 
@@ -81,9 +81,10 @@ CXX = $(CROSS_COMPILE)g++
 AR = $(CROSS_COMPILE)ar
 
 ARFLAGS = cr
-CFLAGS +=  -I$(INCDIR) -Wall 
+CFLAGS += -I$(INCDIR) -Wall
 
-LDFLAGS +=  -L$(LIBDIR) -levent_core -levent_pthreads -lmxml -lnmea -ldebug -lfifo  #-lpthread -lcb -llist  #-ljpeg -lspeex -lsqlite3 -static -lpthread
+#LDFLAGS +=  -L$(LIBDIR) -levent_core -levent_pthreads -lmxml -lnmea -ldebug -lfifo  
+#LDFLAGS += -L$(LIBDIR) -Bstatic -levent_core -levent_pthreads -lmxml -lnmea -ldebug -lfifo -Bdynamic -L$(LIBSODIR) -lsqlite3 #-lpthread -lcb -llist  #-ljpeg -lspeex -lsqlite3 -static -lpthread
 
 DEFS = 
 CFLAGS += $(DEFS)

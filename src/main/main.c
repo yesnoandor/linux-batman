@@ -31,8 +31,10 @@ int main(int argc, char** argv)
 
 	DbgFuncEntry();
 
+
 	//ret = demo_libevent_client(argc,argv);
-	//ret = demo_libevent_server();
+	ret = demo_libevent_server();
+	//ret = demo_dns();
 	//ret = demo_libevent_uart();
 	//ret = demo_authorize_socket();
 	//ret = demo_fleety_event();
@@ -48,8 +50,11 @@ int main(int argc, char** argv)
 	//ret = demo_mcu();
 	//ret = demo_ui();
 	//ret = demo_gprs();
+	//ret = demo_call();
 
-	system_process();
+	//ret = demo_notify();
+	
+	//system_process();
 
 	DbgFuncExit();
 	

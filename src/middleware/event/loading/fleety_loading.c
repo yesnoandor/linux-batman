@@ -18,8 +18,13 @@
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/report/gb905_report.h"
+#include	"module/gb905/av/gb905_photo.h"
 
 #include	"module/gb905/operation/gb905_operate.h"
+
+#include	"middleware/info/toplight.h"
+
+#include    "app/av/fleety_photo.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -38,10 +43,15 @@ void fleety_loading_treat(int loading)
 	if(loading)
 	{
 		gb905_build_pre_operation(OPERATION_BEGIN);
+		set_toplight_operation_status(TOPLIGHT_STATUS_LOADING);
+        
+        //÷ÿ≥µ≈ƒ’’
+        fleety_photo_take_picture_treat(PHOTO_REASON_OCCUPY);
 	}
 	else
 	{
 		gb905_build_pre_operation(OPERATION_END);
+		set_toplight_operation_status(TOPLIGHT_STATUS_EMPTY);
 	}
 
 	DbgFuncExit();

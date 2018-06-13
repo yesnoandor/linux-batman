@@ -23,6 +23,9 @@ extern "C" {
 
 
 
+#define 	PHONE_MEMBER_MAX_NUMBER		100		// 最多联系人成员
+#define 	PHONE_NUMBER_MAX_LEN		20		// 电话号码字符串最大长度
+#define 	PNONE_NAME_MAX_LEN			10		// 电话联系人字符串最大长度
 
 
 

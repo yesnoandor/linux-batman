@@ -28,6 +28,7 @@ enum{
 	GPS_UART,
 	MCU_UART,
 	GPRS_UART,
+	INSPECT_UART,
 
 	MAX_UART_NUM,
 };
@@ -35,7 +36,8 @@ enum{
 	
 void fleety_uart_init(void);
 void fleety_uart_send(int index,unsigned char *buff,int len);
-	
+int fleety_uart_set_mode(int index,int mode);
+
 	
 #ifdef __cplusplus
 }

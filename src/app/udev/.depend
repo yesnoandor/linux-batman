@@ -1,0 +1,14 @@
+/home/wenyu/apps/linux-batman/src/app/udev/fleety_udev.o: fleety_udev.c \
+ /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_keys.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_relay.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_imei.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_system.h \
+ /home/wenyu/apps/linux-batman/inc/misc/check.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/gb905_common.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/db/file/db_file_path.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/event/fleety_event.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/event/export/fleety_export.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

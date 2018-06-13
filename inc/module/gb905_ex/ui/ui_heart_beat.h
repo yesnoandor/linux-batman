@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-#define		UI_HEART_BEAT_TIMEOUT		20
+#define		UI_HEART_BEAT_TIMEOUT		5
 
 void ui_heart_beat_reset(void);
 

@@ -1,0 +1,34 @@
+/home/wenyu/apps/linux-batman/src/app/report/fleety_report.o: \
+ fleety_report.c /home/wenyu/apps/linux-batman/inc/common.h \
+ /home/wenyu/apps/linux-batman/inc/platform/platform.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_keys.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_relay.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_imei.h \
+ /home/wenyu/apps/linux-batman/inc/platform/ubuntu/ubuntu_system.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/gps.h \
+ /home/wenyu/apps/linux-batman/inc/libs/nmea.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/config.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/units.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/config.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/gmath.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/info.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/time.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/info.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/sentence.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/generate.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/sentence.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/generator.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/parse.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/parser.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/context.h \
+ /home/wenyu/apps/linux-batman/inc/libs/./nmea/time.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/gb905_common.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/report/gb905_report.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/status.h \
+ /home/wenyu/apps/linux-batman/inc/middleware/info/setting.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905/report/gb905_trace.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905_peri/meter/gb905_meter.h \
+ /home/wenyu/apps/linux-batman/inc/module/gb905_peri/gb905_peri_common.h \
+ /home/wenyu/apps/linux-batman/inc/app/report/fleety_report.h \
+ /home/wenyu/apps/linux-batman/inc/libs/debug.h

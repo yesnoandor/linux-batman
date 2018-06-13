@@ -23,10 +23,15 @@
 ###############################################
 ifeq ($(platform), qcom)
 CROSS_COMPILE = arm-linux-androideabi-
-else
+endif
+
+ifeq ($(platform), hw)
+CROSS_COMPILE = arm-hisiv100nptl-linux-
+endif
+
+ifeq ($(platform), ubuntu)
 CROSS_COMPILE =
 endif
-#CROSS_COMPILE = arm-hisiv100nptl-linux-
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++

@@ -19,11 +19,14 @@
 #include	"misc/endian.h"
 #include	"misc/misc.h"
 
+#include	"module/gb905/phone_book/gb905_phone_book.h"
 
 #include	"middleware/info/imei.h"
 
 #include	"middleware/uart/fleety_uart.h"
+#include	"middleware/info/call.h"
 
+#include	"app/call/fleety_call.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -144,7 +147,7 @@ static int at_cmd_common_ack_treat(unsigned char *buf,int len)
 	
 	DbgFuncEntry();
 	
-	DbgPrintf("ack:%s\r\n",buf);
+	//DbgPrintf("ack:%s\r\n",buf);
 
 	gprs.state = GPRS_IDLE;
 
@@ -195,19 +198,10 @@ static int at_cmd_get_imei_ack_treat(unsigned char *buf,int len)
 
 static int at_cmd_clcc_treat(unsigned char *buf,int len)
 {
-#if 0
 	char * offset;
 	char * tail;
-	
-	//char idx;
-	//char dir;
-	//char stat;
-	//char mode;
-	//char mpty;
-
-	//char phone[AT_STR_MAX_SIZE];
-	
-	get_call_state_t call_status;
+	clcc_info_t clcc_info;
+	static int uncall_count = 0;
 	DbgFuncEntry();
 
 	gprs.state = GPRS_IDLE;
@@ -219,57 +213,60 @@ static int at_cmd_clcc_treat(unsigned char *buf,int len)
 		offset += strlen("+CLCC:");
 
 		offset = strchr(offset,',');		// idx
-		call_status.idx = atoi(offset - 1);
+		clcc_info.idx = atoi(offset - 1);
 		offset ++;
 		
 		offset = strchr(offset,',');		// dir
-		call_status.dir = atoi(offset - 1);
+		clcc_info.dir = atoi(offset - 1);
 		offset ++;
 		
 		offset = strchr(offset,',');		// stat		
-		call_status.stat = atoi(offset - 1);
+		clcc_info.stat = atoi(offset - 1);
 		offset ++;
 
 		offset = strchr(offset,',');		// mode		
-		call_status.mode = atoi(offset - 1);
+		clcc_info.mode = atoi(offset - 1);
 		offset ++;
 		
 		offset = strchr(offset,',');		// mpty		
-		call_status.mpty = atoi(offset - 1);
+		clcc_info.mpty = atoi(offset - 1);
 		offset =offset+2;
 			
 		tail = strchr(offset,'"');			// phone number
-		memcpy(call_status.phone,offset,tail-offset);
-		memcpy(&call_status.phone[tail-offset],"\0",1);
+		memcpy(clcc_info.phone,offset,tail-offset);
+		memcpy(&clcc_info.phone[tail-offset],"\0",1);
 
-		DbgPrintf("idx = %d\r\n",call_status.idx);
-		DbgPrintf("dir = %d\r\n",call_status.dir);
-		DbgPrintf("stat = %d\r\n",call_status.stat);
-
-		DbgPrintf("mode = %d\r\n",call_status.mode);
-		DbgPrintf("mpty = %d\r\n",call_status.mpty);
-		DbgPrintf("phone = %s\r\n",call_status.phone);
-		
-		set_call_status(&call_status);
-		
-		call_status_check();
+		//是语音通话才保存和解析
+		if(clcc_info.mode==0)
+		{
+			uncall_count = 0;
+			set_clcc_info(&clcc_info);
+			fleety_clcc_state_treat();
+		}
+        else//非语音通话模式
+        {
+           uncall_count++; 
+        }
 		
 	}
 	else if((offset = strstr((const char *)buf,"OK"))>0)
 	{
-		call_status.stat = HANG_UP;
-		set_call_status(&call_status);
-		call_status_check();
-		call_status_inform_to_wince(call_status.stat);
-	}
+		DbgPrintf(" passive hang up2!!!!\r\n");
+		fleety_hand_up(PASSIVE_HANG_UP);
 
+	}
 	else
 	{
 		DbgPrintf(" at_clcc data error!!! \r\n");
 	}
-	
+
+    if(uncall_count > 3)//3次查询clcc，没有语音通话状态则挂断电话
+    {
+        DbgPrintf(" passive hang up1!!!!\r\n");
+		fleety_hand_up(PASSIVE_HANG_UP);
+        uncall_count = 0;
+    }
 	DbgFuncExit();
-#endif
 	
 	return 0;
 }
@@ -457,52 +454,29 @@ static int at_cmd_csq_treat(unsigned char *buf,int len)
 
 static int at_cmd_clip_treat(unsigned char *buf,int len)
 {
-#if 0
+
 	char * head;
 	char * tail;
-	char str[AT_STR_MAX_SIZE];
+	char phone_num[PHONE_NUMBER_MAX_LEN];
 	int ret = 0;
-	params_setting_t * setting_params;
-	call_params_t *calltime;
-	
+
 	DbgFuncEntry();
-	
-	calltime = get_call_params();
-	setting_params = get_setting_params();
-	
-	head = strchr((const char *)buf,':');
-	tail = strchr((const char *)buf,',');
+
+	/*
+	** CLIP应答格式:
+	** CLIP:
+	** "12345678910",129,1,,,
+	*/
+	head = strchr((const char *)buf,'"');
+	tail = strchr((const char *)head+1,'"');
 	
 	if(head && tail)
 	{
-		memset(str,0x00,AT_STR_MAX_SIZE);
-		memcpy(str,head+1,tail-head);
+		memset(phone_num,0x00,PHONE_NUMBER_MAX_LEN);
+		memcpy(phone_num,head+1,tail-head-1);
 		
-		if(!call_time_interval_twice_judge())
-		{
-			return 0;
-		}
-		
-		if(calltime->total_time>=setting_params->max_time_talk_month)//voer max_time_talk_month
-		{
-			DbgError("call in error::over max talk time one month\r\n");
-			return ERROR;
-		}
-	
-		if(gb905_accept_limit_treat(str)==ACCEPT_LIMIT)  //AcceptLimit
-		{
-			DbgError("call in error::call in limit\r\n");
-			calltime->dial_status=HANG_UP;
-			save_call_params(calltime);
-			call_status_inform_to_wince(HANG_UP);
-			return ERROR;
-		}
-		
-		calltime->dial_status=CALLING_IN;
-		save_call_params(calltime);
-		
-		gb905_callin_accept_policy(str);
-		DbgGood("phone number = %s\r\n",str);
+		fleety_call_in(phone_num);
+		DbgGood("call in phone number = %s\r\n",phone_num);
 	}
 	else
 	{
@@ -510,13 +484,10 @@ static int at_cmd_clip_treat(unsigned char *buf,int len)
 		ret = -1;
 	}
 
-	
 	DbgFuncExit();
 
 	return ret;
-#endif
 
-	return 0;
 }
 
 static int at_cmd_orig_treat(unsigned char * buf,int len)
@@ -768,7 +739,8 @@ bool gprs_get_call_state(void)
 
 		gprs.current_at_cmd = gprs_at_send_cmds[AT_CLCC];
 		
-		snprintf(str,AT_STR_MAX_SIZE,"%s\r\n",gprs_at_send_cmds[AT_CLCC].at_cmd);		
+		snprintf(str,AT_STR_MAX_SIZE,"%s\r\n",gprs_at_send_cmds[AT_CLCC].at_cmd);	
+		DbgPrintf("get call state: %s\r\n",str);
 		at_cmd_send((unsigned char *)str,strlen(str));
 
 		ret = true;
@@ -781,6 +753,179 @@ bool gprs_get_call_state(void)
 	return ret;
 }
 
+
+/** 
+* @brief 		向4G    模块发送呼叫命令
+*
+* @return 		发送命令是否成功
+*/
+bool gprs_dail_out(char *phone_num)
+{
+	bool ret = false;	
+	char str[AT_STR_MAX_SIZE];
+
+	DbgFuncEntry();
+	
+	pthread_mutex_lock(&gprs.mutex);
+
+	if(gprs.state == GPRS_IDLE)
+	{
+		gprs.state = GPRS_WAIT;
+
+		gprs.current_at_cmd = gprs_at_send_cmds[AT_DIALOUT];
+		
+		snprintf(str,AT_STR_MAX_SIZE,"%s%s;\r\n",gprs_at_send_cmds[AT_DIALOUT].at_cmd,phone_num);	
+		DbgPrintf("dail out: %s\r\n",str);
+		at_cmd_send((unsigned char *)str,strlen(str));
+
+		ret = true;
+	}
+
+	pthread_mutex_unlock(&gprs.mutex);
+
+	DbgFuncExit();
+	
+	return ret;
+}
+
+/** 
+* @brief 		向4G    模块发送设置CLIP命令
+*
+* @return 		发送命令是否成功
+*/
+bool gprs_set_clip(void)
+{
+	bool ret = false;	
+	char str[AT_STR_MAX_SIZE];
+
+	DbgFuncEntry();
+	
+	pthread_mutex_lock(&gprs.mutex);
+
+	if(gprs.state == GPRS_IDLE)
+	{
+		gprs.state = GPRS_WAIT;
+
+		gprs.current_at_cmd = gprs_at_send_cmds[AT_SETCLIP];
+		
+		snprintf(str,AT_STR_MAX_SIZE,"%s=1\r\n",gprs_at_send_cmds[AT_SETCLIP].at_cmd);	
+		DbgPrintf("dail out: %s\r\n",str);
+		at_cmd_send((unsigned char *)str,strlen(str));
+
+		ret = true;
+	}
+
+	pthread_mutex_unlock(&gprs.mutex);
+
+	DbgFuncExit();
+	
+	return ret;
+}
+
+
+/** 
+* @brief 		向4G    模块发送接听电话的命令
+*
+* @return 		发送命令是否成功
+*/
+
+bool gprs_answer_call(void)
+{
+	bool ret = false;	
+	char str[AT_STR_MAX_SIZE];
+	
+	DbgFuncEntry();
+	
+	pthread_mutex_lock(&gprs.mutex);
+
+	if(gprs.state == GPRS_IDLE)
+	{
+		gprs.state = GPRS_WAIT;
+
+		gprs.current_at_cmd = gprs_at_send_cmds[AT_ACCECT];
+
+		snprintf(str,AT_STR_MAX_SIZE,"%s\r\n",gprs_at_send_cmds[AT_ACCECT].at_cmd);
+		DbgPrintf("answer call: %s\r\n",str);
+		at_cmd_send((unsigned char *)str,strlen(str));
+
+		ret = true;
+	}
+	
+	pthread_mutex_unlock(&gprs.mutex);
+
+	DbgFuncExit();
+	
+	return ret;
+}
+
+/** 
+* @brief 		向4G    模块发送挂断电话的命令
+*
+* @return 		发送命令是否成功
+*/
+bool gprs_hand_up(void)
+{
+	bool ret = false;
+	char str[AT_STR_MAX_SIZE];
+
+	DbgFuncEntry();
+
+	pthread_mutex_lock(&gprs.mutex);
+
+	if(gprs.state == GPRS_IDLE)
+	{
+		gprs.state = GPRS_WAIT;
+
+		gprs.current_at_cmd = gprs_at_send_cmds[AT_HANGUP];
+
+		snprintf(str,AT_STR_MAX_SIZE,"%s\r\n",gprs_at_send_cmds[AT_HANGUP].at_cmd);
+		DbgPrintf("hang up: %s\r\n",str);
+		at_cmd_send((unsigned char *)str,strlen(str));
+
+		ret = true;
+	}
+
+	pthread_mutex_unlock(&gprs.mutex);
+	
+	DbgFuncExit();
+
+	return ret;
+}
+
+
+/** 
+* @brief 		向4G    模块发送CLCC的命令(查询通话状态)
+*
+* @return 		发送命令是否成功
+*/
+bool gprs_send_clcc(void)
+{
+	bool ret = false;
+	char str[AT_STR_MAX_SIZE];
+
+	DbgFuncEntry();
+	
+	pthread_mutex_lock(&gprs.mutex);
+
+	if(gprs.state == GPRS_IDLE)
+	{
+		gprs.state = GPRS_WAIT;
+
+		gprs.current_at_cmd = gprs_at_send_cmds[AT_CLCC];
+
+		snprintf(str,AT_STR_MAX_SIZE,"%s\r\n",gprs_at_send_cmds[AT_CLCC].at_cmd);
+		DbgPrintf("send clcc: %s\r\n",str);
+		at_cmd_send((unsigned char *)str,strlen(str));
+
+		ret = true;
+	}
+
+	pthread_mutex_unlock(&gprs.mutex);
+
+	DbgFuncExit();
+	
+	return ret;
+}
 
 //-----
 /** 
@@ -834,7 +979,7 @@ void gprs_at_protocol_init(void)
 	memset(&gprs,0x00,sizeof(gprs_descriptor_t));
 	gprs.state = GPRS_IDLE;
 	pthread_mutex_init(&gprs.mutex, NULL);
-   
+
 	DbgFuncExit();
 }
 

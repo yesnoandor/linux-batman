@@ -18,18 +18,22 @@
 
 #include	"module/gb905_ex/gb905_ex_common.h"
 #include	"module/gb905_ex/ui/ui_common.h"
+#include	"module/gb905_ex/ui/ui_control.h"
+#include	"module/gb905_ex/ui/ui_history_info.h"
 #include	"module/gb905_ex/ui/ui_gps.h"
 #include	"module/gb905_ex/ui/ui_imei.h"
 #include	"module/gb905_ex/ui/ui_heart_beat.h"
-
-
+#include	"module/gb905_ex/ui/ui_order.h"
+#include	"module/gb905_ex/ui/ui_event.h"
+#include	"module/gb905_ex/ui/ui_question.h"
+#include	"module/gb905_ex/ui/ui_call.h"
+#include	"module/gb905_ex/ui/ui_login.h"
+#include	"module/gb905_ex/ui/ui_isu_state.h"
 
 #include	"middleware/socket/fleety_socket.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
-
-
 
 
 
@@ -156,7 +160,7 @@ bool ui_parse_protocol(buff_mgr_t * msg)
 {
 	ui_protocol_header_t * header;
 	unsigned short msg_no;
-	//unsigned char result = GB905_EX_RESULT_OK;
+	unsigned char result;
 
 	DbgFuncEntry();
 
@@ -164,7 +168,7 @@ bool ui_parse_protocol(buff_mgr_t * msg)
 
 	msg_no = header->msg_id;
 
-	DbgPrintf("msg_no = 0x%x\r\n",msg_no);
+	DbgPrintf("ui_msg_no = 0x%x\r\n",msg_no);
 
 	switch (msg_no)
 	{
@@ -179,7 +183,51 @@ bool ui_parse_protocol(buff_mgr_t * msg)
 		case UI2SYSTEM_IMEI_REP:
 			ui_imei_info_treat(msg->buf + 1 + sizeof(ui_protocol_header_t),header->msg_len);
 			break;
-		
+
+		case UI2SYSTEM_HISTORY_INFO:
+			ui_history_info_display_treat(msg->buf + 1 + sizeof(ui_protocol_header_t),header->msg_len);
+			break;
+
+		case UI2SYSTEM_QUESTION_ACK:
+			result = ui_question_ack_treat(msg->buf + 1 + sizeof(ui_protocol_header_t),header->msg_len);
+			ui_protocol_send_ack(header,result);
+			break;
+			
+		case UI2SYSTEM_EVENT_REPORT:
+			result = ui_event_report_treat(msg->buf + 1 + sizeof(ui_protocol_header_t),header->msg_len);
+			ui_protocol_send_ack(header,result);
+			break;
+
+		case UI2SYSTEM_ISU_STATE_REQ:
+			ui_send_isu_state();
+			break;
+
+		case SYSTEM2UI_ISU_INFO_REQ:
+			ui_send_isu_info();
+			break;
+			
+		case UI2SYSTEM_LOGIN_INFO_REQ:
+			ui_login_info_send_treat();
+			break;
+				
+		case UI2SYSTEM_CALL_OUT:
+			result = ui_call_out_treat(msg->buf + 1 + sizeof(ui_protocol_header_t),header->msg_len);
+			ui_protocol_send_ack(header,result);
+			break;
+
+		case UI2SYSTEM_CALL_CONTROL:
+			result = ui_call_control_treat(msg->buf + 1 + sizeof(ui_protocol_header_t),header->msg_len);
+			ui_protocol_send_ack(header,result);
+			break;
+
+        case UI2SYSTEM_TERMINAL_CONTROL:
+            ui_control_termianl_treat(msg->buf + 1 + sizeof(ui_protocol_header_t),header->msg_len);
+            break;
+            
+		case UI2SYSTEM_ORDER_CONTROL:
+			ui_order_control_treat(msg->buf + 1 + sizeof(ui_protocol_header_t),header->msg_len);
+			break;
+
 		default:
 			break;
 	}

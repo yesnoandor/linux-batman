@@ -20,14 +20,14 @@
 #include	"misc/check.h"
 #include	"misc/endian.h"
 
-#include	"middleware/socket/fleety_socket.h"
-#include	"middleware/info/device.h"
+
 
 #include	"module/gb905/gb905_common.h"
 #include	"module/gb905/report/gb905_report.h"
 #include	"module/gb905/report/gb905_trace.h"
 #include	"module/gb905/params/gb905_params.h"
 #include	"module/gb905/ctrl/gb905_control.h"
+#include	"module/gb905/remote/gb905_remote.h"
 #include	"module/gb905/notice/gb905_notice.h"
 #include	"module/gb905/event/gb905_event.h"
 #include	"module/gb905/question/gb905_question.h"
@@ -36,7 +36,24 @@
 #include	"module/gb905/transparent/gb905_transparent.h"
 #include	"module/gb905/callback/gb905_callback.h"
 #include	"module/gb905/order/gb905_order.h"
+#include	"module/gb905/alarm/gb905_alarm.h"
+#include	"module/gb905/inspection/gb905_inspection.h"
+#include	"module/gb905/av/gb905_photo.h"
+#include	"module/gb905/av/gb905_audio.h"
 
+
+#include	"middleware/socket/fleety_socket.h"
+#include	"middleware/info/device.h"
+#include	"middleware/info/order.h"
+#include	"middleware/db/sqlite3/report_sqlite3.h"
+#include	"middleware/db/sqlite3/order_sqlite3.h"
+#include	"middleware/db/sqlite3/operation_sqlite3.h"
+#include	"middleware/event/alarm/fleety_alarm.h"
+
+#include	"middleware/info/status.h"
+
+#include	"app/order/fleety_order.h"
+#include	"app/record/fleety_record.h"
 
 
 
@@ -142,6 +159,26 @@ static int gb905_unescape(unsigned char *dest, unsigned char *src, int len)
 }
 
 /** 
+   * @brief 	构造音频请求的数据协议
+   *
+   */
+void gb905_build_full_audio_req_protol(unsigned char* src_data,int src_len,unsigned char* des_data,int* des_len)
+{
+	
+	unsigned char val;
+	src_data[0] = src_data[src_len -1] = MAGIC_CHAR;
+
+	val = xor8_computer((unsigned char *)&src_data[1],src_len - 3);
+	src_data[src_len - 2] = val;
+
+	des_data[0]  = src_data[0];
+	*des_len =  gb905_escape(&des_data[1],&src_data[1],src_len-2);
+	(*des_len)++;
+	des_data[*des_len] = src_data[src_len - 1];
+	(*des_len)++;
+}
+
+/** 
    * @brief 	服务器对终端的通用应答的解析
    * @param buf	收到应答的缓冲地址
    * @param len	收到应答的缓冲长度
@@ -170,6 +207,34 @@ static void gb905_common_ack_treat(unsigned char *buf,int len)
 		{
 			case MESSAGE_HEART_BEAT:
 				gb905_heart_beat_reset();
+				break;
+				
+			case MESSAGE_LOCATION_REPORT:
+			case MESSAGE_LOCATION_SUPPLEMENT_REPORT:
+				report_sqlite3_update_state(ack_body->seq);
+				gb905_record_cancel(MAIN_SOCKET,ack_body);
+                fleety_clr_alarm_after_report_ack();
+				break;
+
+            case MESSAGE_OPERATION_REPORT:
+                operation_sqlite3_update_record((int)ack_body->seq);
+                gb905_record_cancel(MAIN_SOCKET,ack_body);
+                break;
+                
+			case MESSAGE_ORDER_GRAB:
+				set_order_status_info(ORDER_STATUS_CRAB_ACK);
+				break;
+
+			case MESSAGE_ORDER_FINISH:
+                fleety_order_finish_treat();
+				break;
+				
+			case MESSAGE_ORDER_CANCEL_UP:
+				set_order_status_info(ORDER_STATUS_ISU_CANCEL_ACK);
+				break;
+
+			case MESSAGE_PICTURE_UPLOAD:
+				gb905_photo_upload_picture_treat();
 				break;
 		
 			default:
@@ -412,6 +477,12 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 			result = gb905_set_phone_book_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
 			gb905_send_ack(header,result);
 			break;
+
+		case MESSAGE_REMOTE_CTRL:
+			result = gb905_remote_control_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			gb905_send_ack(header,result);
+			gb905_remote_control_ack(EndianReverse16(header->msg_serial_number));
+			break;
 		
 		case MESSAGE_CALLBACK:
 			result = gb905_callback_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
@@ -422,49 +493,69 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 			gb905_transparent_download_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
 			break;
 		
-		case MESSAGE_ORDER_INFO:
+		case MESSAGE_ORDER_BREIF_INFO:
 			result = gb905_order_briefing_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
 			gb905_send_ack(header, result);
+			set_order_status_info(ORDER_STATUS_BRIEF_ACK);
 			break;
 			
 		case MESSAGE_ORDER_GRAB_ACK:
 			result = gb905_order_detials_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
 			gb905_send_ack(header, result);
+			set_order_status_info(ORDER_STATUS_DETAIL_ACK);
 			break;
 		
 		case MESSAGE_ORDER_CANCEL_DOWN:
-			result = gb905_order_cancel_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			result = gb905_order_server_cancel_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			gb905_send_ack(header, result);
+			set_order_status_info(ORDER_STATUS_IDLE);
+			break;
+
+		case MESSAGE_CONFIRM_ALARM:
+			result = gb905_alarm_confirm_treat();
 			gb905_send_ack(header, result);
 			break;
 
-			
-		#if 0
-		case MESSAGE_REMOTE_CTRL:
-			result = gb905_remote_control_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
-			gb905_send_ack(header,result);
-			gb905_remote_control_ack(EndianReverse16(header->msg_serial_number));
-			break;
 		
+		case MESSAGE_CANCEL_ALARM:
+			result = gb905_alarm_cancel_treat();
+			gb905_send_ack(header, result);
+			break;
+
+		case MESSAGE_DEVICE_INSPECTION:
+			gb905_inspection_device_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			break;
+
 		case MESSAGE_PICTURE_CTRL:
-			result = gb905_picture_ctrl_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len,header->msg_serial_number);
+			result = gb905_photo_take_picture_treat(msg->buf,msg->len);
 			gb905_send_ack(header,result);
 			break;
 
-
+		
 		case MESSAGE_PICTURE_SEARCH:
 			gb905_send_ack(header,GB905_RESULT_OK);
-			gb905_picture_search_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len,header->msg_serial_number);
+			gb905_photo_search_picture_treat(msg->buf,msg->len);
 			break;
 
+		case MESSAGE_AV_UPLOAD_REQUEST:
+			gb905_send_ack(header,GB905_RESULT_OK);
+			gb905_photo_upload_av_request_treat(msg->buf + 1 + sizeof(gb905_header_t),header->msg_len);
+			break;
+
+		case MESSAGE_RECORD_SEARCH:
+			gb905_send_ack(header,GB905_RESULT_OK);
+			gb905_audio_search_record_treat(msg->buf,msg->len);
+			break;
+			
+		#if 0
+
+	
 		case MESSAGE_RECORD_SEARCH:
 			gb905_send_ack(header,GB905_RESULT_OK);
 			gb905_audio_search_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len,header->msg_serial_number);
 			break;
 			
-		case MESSAGE_AV_UPLOAD_REQUEST:
-			gb905_send_ack(header,GB905_RESULT_OK);
-			gb905_av_upload_request_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
-			break;
+		
 				
 		case MESSAGE_GET_LOCATION:
 			gb905_send_report_ack(EndianReverse16(header->msg_serial_number));
@@ -485,11 +576,6 @@ static bool gb905_parse_protocol(buff_mgr_t * msg)
 			gb905_send_ack(header, result);
 			break;
 			
-		case MESSAGE_CANCEL_ALARM:
-			result = gb905_cancel_alarm_treat();
-			gb905_send_ack(header, result);
-			break;
-
 
 		case MESSAGE_DEVICE_INSPECTION:
 			result = gb905_device_inspection_treat(msg->msg_buf + 1 + sizeof(gb905_msg_header_t),header->msg_len);
@@ -565,12 +651,7 @@ static void gb905_build_ack_body(ack_body_t * ack_body,gb905_header_t * header,u
 }
 
 //----------
-/*
-* itop协议的解析
-* @buf： 从socket收到的循环buffer中，抽取当前接受到的数据，放入临时开的接受数据buffer
-* @len : 临时开的接受数据buffer长度
-* @return：返回当前解析掉的数据长度
-*/
+
 
 /** 
    * @brief 	GB905  协议的解析
@@ -789,8 +870,9 @@ void gb905_send_data(unsigned char socket_index,unsigned char * buf, int len)
 		
 		for(i=0;i<new_len;i++)
 		{
-			DbgPrintf("new_buf[%d] = 0x%x\r\n",i,new_buf[i]);
+			DbgPrintf("0x%02x ",new_buf[i]);
 		}
+        DbgPrintf("\r\n");
 	}
 	#endif
 	

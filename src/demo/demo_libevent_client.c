@@ -167,7 +167,7 @@ int demo_libevent_client(int argc, char** argv)
 }  
 */
 
-/*
+
 //-------------------------
 #include	<sys/types.h>
 #include	<sys/socket.h>  
@@ -272,7 +272,12 @@ static void event_cb(struct bufferevent *bev, short event, void *arg)
 	if (event & BEV_EVENT_EOF)
         DbgPrintf("connection closed\r\n");  
     else if (event & BEV_EVENT_ERROR)  
-        DbgPrintf("some other error\n");  
+        DbgPrintf("some other error\n");
+	else if( event & BEV_EVENT_CONNECTED)
+	{
+		DbgGood("the client has connected to server!\r\n");
+		return ;
+	}
   
     // 这将自动close 套接字和free读写缓冲区  
     bufferevent_free(bev);  
@@ -335,10 +340,10 @@ int demo_libevent_client(int argc, char** argv)
 
 	return 0;  
 }  
-*/
 
 
 
+#if 0
 // ----------    
 #include	<sys/types.h>
 #include	<sys/socket.h>  
@@ -482,6 +487,6 @@ int demo_libevent_client(int argc, char** argv)
 
 	return 0;
 }  
-  
+#endif
   
 

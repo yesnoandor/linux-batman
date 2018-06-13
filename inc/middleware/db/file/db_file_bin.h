@@ -22,8 +22,8 @@
 extern "C" {
 #endif
 
-bool file2buf(const char * name,unsigned char *buff,int len);
-bool buf2file(const char * name,unsigned char *buff,int len);
+bool file2buf(const char * path,int offset,unsigned char *buff,int len);
+bool buf2file(const char * path,int offset,unsigned char *buff,int len);
 
 
 #ifdef __cplusplus

@@ -24,26 +24,39 @@
 
 
 #include	"module/gb905/gb905_common.h"
+#include	"module/gb905_update/gb905_update_common.h"
+#include	"module/gb905_update/meter/gb905_update_meter.h"
+
+#include	"module/gb905_ex/ui/ui_common.h"
+#include	"module/gb905_ex/ui/ui_notice.h"
+
+#include	"middleware/info/update.h"
+
 //#include	"module/gb905/report/gb905_report.h"
 #include	"module/gb905_peri/gb905_peri_common.h"
 #include	"module/gb905_peri/tsm/gb905_tsm.h"
 #include	"module/gb905_peri/meter/gb905_meter.h"
-
+#include	"module/gb905/inspection/gb905_inspection.h"
 #include	"module/gb905/transparent/gb905_transparent.h"
 
+#include	"module/gb905_ex/mcu/mcu_eval.h"
+
+#include	"middleware/info/eval.h"
 #include	"middleware/info/status.h"
 #include	"middleware/info/setting.h"
 #include	"middleware/info/meter.h"
-
+#include	"middleware/info/product.h"
 #include	"middleware/uart/fleety_uart.h"
-
 #include	"middleware/event/fleety_event.h"
+
+#include	"app/report/fleety_report.h"
+
 		
 #define		DEBUG_Y
 #include	"libs/debug.h"
 
 #define		METER_TYPE_ID		0x02
-#define		METER_VENDOR_ID		0x03			// 0x10
+
 
 #define		METER_RESULT_OK		0x90
 #define		METER_RESULT_FAIL	0xFF
@@ -69,11 +82,19 @@
 
 #define		MATER_COMMAND_UPGRADE				0x00FF
 
+#define		METER_HEART_BEAT_THREHOLD			60
+
+static int meter_heart_beat_count = 0;
+#define OPEN_FAIL_INFO	    "车辆锁定，无法签到！！！"
 
 static void gb905_meter_build_header(gb905_peri_header_t* header,unsigned short cmd,unsigned short len)
 {
+	product_params_t product_params;
+
+	get_product_params((unsigned char *)&product_params);
+
 	header->type = METER_TYPE_ID;
-	header->vendor = METER_VENDOR_ID;
+	header->vendor = product_params.meter_vendor_id;
 	gb905_peri_build_header(header,cmd,len);
 }
 
@@ -123,6 +144,23 @@ static void gb905_meter_build_set_param_body(gb905_meter_parameter_body_t * body
 	DbgFuncExit();
 }
 
+static void gb905_meter_build_update_body(gb905_meter_update_body_t * body)
+{
+	gb905_update_info_t update_info;
+			
+	DbgFuncEntry();
+
+	get_update_info((unsigned char *)&update_info);
+	
+	body->vendor_id = update_info.base_info.vendor_id;
+	body->hw_version = update_info.hw_version;
+	body->main_sw_version = update_info.sw_version[0];
+	body->vice_sw_version = update_info.sw_version[1];
+
+	DbgFuncExit();
+}
+
+
 static void gb905_meter_build_login_ack_body(gb905_meter_loginout_ack_body_t * ack_body)
 {
 	license_params_t * license_params;
@@ -167,7 +205,8 @@ static void gb905_meter_parse_state(unsigned char * buf,unsigned short len)
 	
 	DbgPrintf("device state = 0x%x\r\n",state_body->device_state);
 	DbgPrintf("running state = 0x%x\r\n",state_body->running_state);
-		
+
+	gb905_inspection_set_ack_info(GB905_DEVICE_METER,buf,len);
 
 	#if 0
 	meter_state = (gb2014_meter_state_t *)buf;
@@ -220,7 +259,16 @@ static void gb905_meter_set_parameter_ack_treat(unsigned char * buf,unsigned sho
 static bool gb905_meter_open_close_treat(unsigned char mark)
 {
 	bool ret = false;
-	
+    taxi_status_t status;
+    
+    taxi_get_status(&status);
+    
+    if(status.hw.flag.car_lock)
+    {
+        ui_send_terminal_remind((unsigned char *)OPEN_FAIL_INFO,sizeof(OPEN_FAIL_INFO));
+        return ret;
+    }
+    
 	if(mark == 0x90)	// 0x90 :  开机标识
 	{
 		gb905_tsm_get_driver_info();
@@ -348,6 +396,8 @@ static void gb905_meter_heart_beat_ack(void)
 
 	fleety_uart_send(METER_UART,buf,sizeof(gb905_meter_heart_beat_ack_t));
 
+	meter_heart_beat_count = 0;
+	
 	DbgFuncExit();	
 }
 
@@ -391,10 +441,17 @@ static void gb905_meter_parse_heart_beat(unsigned char *buf,unsigned short len)
 		}
 	}
 	#endif
-	
-	set_meter_connected();
-	
+		
 	DbgFuncExit();
+}
+
+/** 
+* @brief 	计价器收到升级应答的处理
+*
+*/
+static void gb905_meter_update_ack_treat(unsigned char *buf,int len)
+{
+	gb905_update_meter_start();
 }
 
 static int gb905_meter_common_ack(unsigned short command,unsigned char result)
@@ -474,9 +531,9 @@ static unsigned char gb905_meter_loading_treat(unsigned char * buf,unsigned shor
 	
 	fleety_event_push(&event);
 
-
-	//gb905_take_picture(TAKE_PIC_REASON_OCCUPY);
-	//fleety_report(0);
+	set_empty2weight_status();
+	fleety_report();
+	reset_weight_empty_status();
 	
 	DbgFuncExit();
 
@@ -529,7 +586,10 @@ static unsigned char gb905_meter_unloading_treat(unsigned char * buf,unsigned sh
 	//event.event_param = loading;
 
 	//fleety_event_push(&event);
-	//fleety_report(0);
+	
+	set_weight2empty_status();
+	fleety_report();
+	reset_weight_empty_status();
 	
 	DbgFuncExit();
 
@@ -542,6 +602,38 @@ static unsigned char gb905_meter_unloading_treat(unsigned char * buf,unsigned sh
 }
 
 /** 
+* @brief 	GB905  计价器补传的处理
+* @param buf		存放计价器传过来消息体的缓存数据地址
+* @param buf		存放计价器传过来消息体的缓存数据长度
+* 
+* @return			解析是否成功
+*/
+static unsigned char gb905_meter_supplement_treat(unsigned char * buf,unsigned short len)
+{
+	gb905_meter_operation_t * meter_operation;
+
+	fleety_event_t event;
+	
+	DbgFuncEntry();
+
+	meter_operation = (gb905_meter_operation_t *)buf;
+	set_meter_operation_info((char *)meter_operation);
+
+	set_eval_state(EVAL_NONE);
+	
+	event.id = METER_SUPPLEMENT_EVENT;
+	event.param = 0;
+	event.priority = DAFAULT_PRIORITY;
+	
+	fleety_event_push(&event);
+
+	DbgFuncExit();
+
+	return METER_RESULT_OK;
+}
+
+
+/** 
 * @brief 	GB905  计价器协议的消息头具体解析
 * @param msg		存放消息的缓存数据结构
 * 
@@ -551,7 +643,9 @@ static bool gb905_meter_parse_header(buff_mgr_t * msg)
 {
 	bool ret = true;
 	gb905_peri_header_t * header;
+	product_params_t product_params;
 
+	
 	DbgFuncEntry();
 
 	header = (gb905_peri_header_t *)(msg->buf);
@@ -572,8 +666,11 @@ static bool gb905_meter_parse_header(buff_mgr_t * msg)
 	}
 
 	//DbgPrintf("type = 0x%04x\r\n",header->type);
+
 	
-	if(header->type != METER_TYPE_ID)
+	get_product_params((unsigned char *)&product_params);
+	
+	if(header->type != product_params.meter_vendor_id)
 	{
 		DbgError("meter terminal type error!\r\n");
 				
@@ -640,6 +737,10 @@ static int gb905_meter_parse_protocol(buff_mgr_t * msg)
 			// demo test transparent download/upload
 			// gb905_transparent_upload_treat(GB905_DEVICE_METER,GB905_VENDOR_ID,METER_COMMAND_QUERY_STATE,buf,len);	
 			break;
+			
+        case METER_COMMAND_CALIBRATION_TIME:
+            //gb905_meter_calibration_time_result(buf,len);
+            break;
 
 		case METER_COMMAND_QUERY_PARAMETER:
 			gb905_meter_parse_query_parameter(buf,len);
@@ -665,7 +766,7 @@ static int gb905_meter_parse_protocol(buff_mgr_t * msg)
 			break;
 
 		case METER_OPERATION_RESEND:			// 计价器补传
-			result = METER_RESULT_OK;
+			result = gb905_meter_supplement_treat(buf,len);
 			gb905_meter_common_ack(header->cmd,result);
 			break;
 
@@ -685,7 +786,7 @@ static int gb905_meter_parse_protocol(buff_mgr_t * msg)
 			break;
 
 		case MATER_COMMAND_UPGRADE:
-			//update_peripheral_common_ack(meter_data,meter_data_len);
+			gb905_meter_update_ack_treat(buf,len);
 			break;
 	
 		default:
@@ -810,17 +911,27 @@ void gb905_meter_query_state(void)
 *
 * @return 是否运行正常
 */
-bool gb905_meter_open_ack(void)
+bool gb905_meter_open_close_ack(void)
 {
 	unsigned char *buf;
+	unsigned short cmd;
 	
 	unsigned char xor;
 	gb905_meter_loginout_ack_t login_ack;
 
 	DbgFuncEntry();
 
+	if(get_login_mode())
+	{
+		cmd = METER_COMMAND_CLOSE;
+	}
+	else
+	{
+		cmd = METER_COMMAND_OPEN;
+	}
+
 	buf = (unsigned char *)&login_ack;
-	gb905_meter_build_header(&login_ack.header,METER_COMMAND_OPEN,sizeof(gb905_meter_loginout_ack_body_t) + sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
+	gb905_meter_build_header(&login_ack.header,cmd,sizeof(gb905_meter_loginout_ack_body_t) + sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
 
 	gb905_meter_build_login_ack_body(&login_ack.ack_body);
 		
@@ -928,7 +1039,7 @@ void gb905_meter_transparent(unsigned char *msg_buf,unsigned short msg_len)
 
 	cmd_prt = (unsigned short *)msg_buf;
 	
-	DbgPrintf("meter transparent cmd is 0x%04x\r\n",*cmd_prt);
+	DbgPrintf("meter transparent cmd is 0x%04x\r\n",EndianReverse16(*cmd_prt));
 
 	msg_buf = msg_buf + sizeof(unsigned short);// 跳过命令字
 	data_len = msg_len-2;		// 2:sizeof cmd
@@ -942,7 +1053,7 @@ void gb905_meter_transparent(unsigned char *msg_buf,unsigned short msg_len)
 	}
 
 	meter_header = (gb905_peri_header_t*)send_buf;
-	gb905_meter_build_header(meter_header,*cmd_prt,data_len + sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
+	gb905_meter_build_header(meter_header,EndianReverse16(*cmd_prt),data_len + sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
 
 	data_buf = send_buf+sizeof(gb905_peri_header_t);
 	memcpy((void*)data_buf,(void*)msg_buf,data_len);
@@ -969,3 +1080,145 @@ void gb905_meter_transparent(unsigned char *msg_buf,unsigned short msg_len)
 	
 	DbgFuncExit();
 }
+
+/** 
+* @brief 	国标心跳超时的处理
+*
+*/
+void gb905_meter_heart_beat_treat(void)
+{
+    taxi_status_t status;
+    taxi_get_status(&status);
+    
+	meter_heart_beat_count++;
+	if(meter_heart_beat_count > METER_HEART_BEAT_THREHOLD)
+	{
+        //如果不在报警状态，则设置报警状态
+        if(!status.alarm.flag.meter_fault)
+        {
+            set_meter_alarm_status();
+        }
+        
+		DbgError("GB905 Meter Heart Beat Timeout!\r\n");
+	}
+    else
+    {
+        //如果在报警状态，则清除报警状态
+        if(status.alarm.flag.meter_fault)
+        {
+            clr_meter_alarm_status();
+        }
+    }
+}
+
+
+/** 
+* @brief 	向计价器发送永久时钟误差查询
+*
+*/
+void gb905_meter_calibration_time(void)
+{
+	unsigned char *buf;
+	unsigned char xor;
+	
+	gb905_meter_calibration_time_t  calibration_time;
+
+	DbgFuncEntry();
+
+	buf = (unsigned char *)&calibration_time;
+	gb905_meter_build_header(&calibration_time.header,METER_COMMAND_CALIBRATION_TIME,sizeof(calibration_time.timestamp.bcd)+sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
+
+	gb905_peri_build_timestamp(&calibration_time.timestamp);
+
+	xor = xor8_computer(buf + offsetof(gb905_peri_header_t,len),sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,len));
+	gb905_peri_build_tail(&calibration_time.tail,xor);
+	
+	fleety_uart_send(METER_UART,buf,sizeof(gb905_meter_calibration_time_t));
+
+	DbgFuncExit();
+}
+
+
+/** 
+* @brief 	向计价器发送升级命令
+*
+*/
+void gb905_meter_update(void)
+{
+	unsigned char *buf;
+	unsigned char xor;
+
+	gb905_meter_update_t meter_update;
+
+	DbgFuncEntry();
+	
+	buf = (unsigned char *)&meter_update;
+	gb905_meter_build_header(&meter_update.header,MATER_COMMAND_UPGRADE,sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,type));
+
+	gb905_meter_build_update_body(&meter_update.body);
+	
+	xor = xor8_computer(buf + offsetof(gb905_peri_header_t,len),sizeof(gb905_peri_header_t) - offsetof(gb905_peri_header_t,len));
+	gb905_peri_build_tail(&meter_update.tail,xor);
+
+	fleety_uart_send(METER_UART,buf,sizeof(gb905_meter_update_t));
+
+	DbgFuncExit();
+}
+
+/** 
+* @brief 	判断是否给计价器校时
+*
+*/
+void gb905_meter_calibration_time_tactics(void)
+{
+    gb905_meter_heart_beat_body_t heart_beat_body;
+    
+    DbgFuncEntry();
+
+    //get_meter_heart_beat_info((char*)&heart_beat_body);
+
+    //空车状态
+    if(!heart_beat_body.meter_state.flag.loading)
+    {
+        gb905_meter_calibration_time();
+    }
+    
+	DbgFuncExit();   
+}
+
+#if 0
+/** 
+* @brief 	计价器校时结果处理函数
+*
+*/
+void gb905_meter_calibration_time_result(unsigned char *buf,unsigned short len)
+{
+    unsigned char result;
+    
+    DbgFuncEntry();
+
+    result = *buf;
+
+    if(result == METER_TIMING_OK)
+    {
+       DbgPrintf("timing ok!!!\r\n"); 
+       clr_meter_time_over_error_alarm_status();
+    }
+    else if(result == METER_TIMING_OVER_ERROR)
+    {
+        set_meter_time_over_error_alarm_status();
+        fleety_report();
+        DbgPrintf("time over error!!!\r\n");
+    }
+    else if(result == METER_RESULT_FAIL)
+    {
+        DbgPrintf("timing fail!!!\r\n");
+    }
+    else
+    {
+        DbgPrintf("don't support this result!!!\r\n");
+    }
+    
+	DbgFuncExit();   
+}
+#endif

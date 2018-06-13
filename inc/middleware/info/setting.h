@@ -28,6 +28,44 @@ extern "C" {
 
 
 typedef struct {
+	char	meter_uart_device[32];			//  计价器串口设备名称
+	int		meter_uart_bps;					// 计价器串口波特率
+
+	char	toplight_uart_device[32];		// 顶灯串口设备名称
+	int		toplight_uart_bps;				// 顶灯串口波特率
+
+	char	tsm_uart_device[32];			// TSM 模块串口设备名称
+	int		tsm_uart_bps;					// TSM 模块串口波特率
+
+	char	gps_uart_device[32];			// GPS 模块串口设备名称
+	int		gps_uart_bps;					// GPS 模块串口波特率
+
+	char	mcu_uart_device[32];			//  STM32  串口设备名称
+	int		mcu_uart_bps;					//  STM32  串串口波特率
+
+	char	gprs_uart_device[32];			// 4G 模块串口设备名称
+	short	gprs_uart_bps;					// 4G 模块串口波特率
+
+	char	inspect_uart_device[32];		// 巡检串口设备名称
+	short	inspect_uart_bps;				// 巡检串口波特率
+}__packed uart_params_t;
+
+
+typedef struct {
+	char	main_server_ip[32];			// 主服务器IP  地址
+	short	main_server_port;			// 主服务器端口
+
+	char	vice_server_ip[32];			// 副服务器IP  地址
+	short	vice_server_port;			// 副服务器端口
+
+	char	ui_server_ip[32];			// UI   服务器IP  地址
+	short	ui_server_port;				// UI   服务器端口
+
+	char	auth_server_ip[32];			// 认证服务器IP  地址
+	short	auth_server_port;			// 认证服务器端口
+}__packed socket_params_t;
+
+typedef struct {
 	unsigned int	heartbeat_interval;			// 终端心跳发送间隔，秒
 	unsigned int	tcp_msg_ack_timeout;		// TCP 消息应答超时时间，秒
 	unsigned int	tcp_msg_retry_count;		// TCP 消息重传次数
@@ -132,7 +170,12 @@ void init_setting_params(void);
 setting_params_t * get_setting_params(void);
 void set_setting_params(void);
 void debug_setting_params(void);
+void export_setting_params(char *path);
 
+void init_socket_params(void);
+socket_params_t * get_socket_params(void);
+void set_socket_params(void);
+void debug_socket_params(void);
 
 
 typedef trace_body_t trace_params_t;

@@ -35,6 +35,7 @@ void fleety_socket_init(void);
 void fleety_socket_send(int index,unsigned char *buff,int len);
 void fleety_pipe_send(void);
 
+void fleety_modify_server_ip(unsigned char index,char * ip,unsigned int port);
 
 #ifdef __cplusplus
 }

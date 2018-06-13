@@ -23,6 +23,12 @@ bool gprs_get_imei(void);
 
 int gprs_at_protocol_ayalyze(unsigned char * buf,int len);
 void gprs_at_protocol_init(void);
+bool gprs_get_call_state(void);
+bool gprs_dail_out(char *phone_num);
+bool gprs_set_clip(void);
+int gprs_answer_call(void);
+int gprs_hand_up(void);
+int gprs_send_clcc(void);
 
 
 #endif

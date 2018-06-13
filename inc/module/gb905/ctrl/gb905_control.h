@@ -66,6 +66,19 @@ typedef  struct
     unsigned char end_magic_id;
 } __packed gb905_update_result_t;
 
+// 无线升级参数
+typedef  struct
+{
+	gb905_update_device_info_t	device_info;
+
+	char 	update_server_apn[32];				// 升级服务器APN，无线通信拨号访问点
+	char 	update_server_username[32];			// 升级服务器无线通信拨号用户名
+	char 	update_server_password[32];			// 升级服务器无线通信拨号密码
+	char 	update_server_ipaddr[32];			// 升级服务器地址,IP 或域名
+
+	unsigned short	update_server_tcp_port;		// 升级服务器TCP 端口
+}gb905_update_param_t;
+
 
 unsigned char gb905_control_treat(unsigned char *buf,int len);
 

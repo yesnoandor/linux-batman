@@ -16,6 +16,8 @@
 ********************************************************************************************************/
 #include	"common.h"
 
+#include	"misc/check.h"
+
 #include	"middleware/db/file/db_file_path.h"
 
 #define		DEBUG_Y
@@ -25,39 +27,57 @@
 /** 
 * @brief 	将文件中的数据读取到缓冲
 * @param name	读取的文件名
+* @param offset	读取的偏移地址
 * @param buff		缓冲区地址
 * @param len		缓冲区长度
 * 
 * @return  返回保存是否成功
 */
-bool file2buf(const char * name,unsigned char *buff,int len)
+bool file2buf(const char * path,int offset,unsigned char *buff,int len)
 {
 	FILE *fp;
 	size_t	size;
 	
 	bool ret = false;
-	char path[MAX_PATH_CHARS_SIZE];
+	//char path[MAX_PATH_CHARS_SIZE];
 
 	DbgFuncEntry();
 
-	build_file_path(path,name);
+	//build_file_path(path,name);
 	DbgPrintf("path = %s\r\n",path);
 
-	fp = fopen(path,"a+b");
-	if(NULL==fp)
+	if(is_file_exist(path))
 	{
-		DbgError("fopen failed!(%s)\r\n",path);
-		return ret;
-	}
-	
-	size = fread(buff,sizeof(char),len,fp);
-	if(size != len)
-	{
-		DbgError("fread file error!(size = %d,len = %d)\r\n",size,len);
+		fp = fopen(path,"r+b");
+		if(NULL==fp)
+		{
+			DbgError("fopen failed!(%s)\r\n",path);
+			return ret;
+		}
+
+		fseek(fp, offset, SEEK_SET);
+		
+		size = fread(buff,sizeof(char),len,fp);
+		if(size != len)
+		{
+			DbgError("fread file error!(size = %d,len = %d)\r\n",size,len);
+		}
+		else
+		{
+			ret = true;
+		}
 	}
 	else
 	{
-		ret = true;
+		DbgPrintf("new a file(%s)\r\n",path);
+		
+		fp = fopen(path,"a+b");
+		if(NULL==fp)
+		{
+			DbgError("fopen failed!(%s)\r\n",path);
+			return ret;
+		}
+	
 	}
 
 	fflush(fp);
@@ -77,17 +97,17 @@ bool file2buf(const char * name,unsigned char *buff,int len)
 * 
 * @return  返回保存是否成功
 */
-bool buf2file(const char * name,unsigned char *buff,int len)
+bool buf2file(const char * path,int offset,unsigned char *buff,int len)
 {
 	FILE *fp;
 	size_t	size;
 	
 	bool ret = false;
-	char path[MAX_PATH_CHARS_SIZE];
+	//char path[MAX_PATH_CHARS_SIZE];
 	
 	DbgFuncEntry();
 
-	build_file_path(path,name);
+	//build_file_path(path,name);
 	
 	DbgPrintf("path = %s\r\n",path);
 	
@@ -97,6 +117,8 @@ bool buf2file(const char * name,unsigned char *buff,int len)
 		DbgError("fopen failed!(%s)\r\n",path);
 		return ret;
 	}
+
+	fseek(fp, offset, SEEK_SET);
 	
 	size = fwrite(buff,sizeof(char),len,fp);
 

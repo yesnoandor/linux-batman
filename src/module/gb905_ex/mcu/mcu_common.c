@@ -23,6 +23,7 @@
 #include	"module/gb905_ex/mcu/mcu_eval.h"
 #include	"module/gb905_ex/mcu/mcu_volumn.h"
 #include	"module/gb905_ex/mcu/mcu_heart_beat.h"
+#include	"module/gb905_ex/mcu/mcu_version.h"
 
 
 #include	"middleware/uart/fleety_uart.h"
@@ -169,7 +170,7 @@ bool mcu_parse_protocol(buff_mgr_t * msg)
 
 	msg_no = header->msg_id;
 
-	DbgPrintf("msg_no = 0x%x\r\n",msg_no);
+	DbgPrintf("mcu_msg_no = 0x%x\r\n",msg_no);
 
 	switch (msg_no)
 	{
@@ -199,6 +200,10 @@ bool mcu_parse_protocol(buff_mgr_t * msg)
 		case MCU2SYSTEM_GPIO_MAP_REP:
 			mcu_gpio_map_treat(msg->buf,msg->len);
 			break;
+
+        case MCU2SYSTEM_VERSION_REP:
+            mcu_get_version_treat(msg->buf,msg->len);
+            break;
 		
 		default:
 			break;

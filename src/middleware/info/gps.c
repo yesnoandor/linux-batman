@@ -33,3 +33,23 @@ void gps_set_info(gps_info_t * gps_info)
 	memcpy(&gps_now,gps_info,sizeof(gps_info_t));
 }
 
+void gps_debug_info(void)
+{
+	DbgFuncEntry();
+
+	DbgPrintf("utc.year = %d\r\n",gps_now.utc.year);
+	DbgPrintf("utc.mon = %d\r\n",gps_now.utc.mon + 1);
+	DbgPrintf("utc.day = %d\r\n",gps_now.utc.day);
+	DbgPrintf("utc.hour = %d\r\n",gps_now.utc.hour);
+	DbgPrintf("utc.min = %d\r\n",gps_now.utc.min);
+	DbgPrintf("utc.sec = %d\r\n",gps_now.utc.sec);
+	DbgPrintf("utc.hsec = %d\r\n",gps_now.utc.hsec);
+	
+	DbgPrintf("fixed = %d\r\n",gps_now.fixed);
+    DbgPrintf("latitude = %d\r\n",gps_now.latitude);
+	DbgPrintf("longitude = %d\r\n",gps_now.longitude);
+	DbgPrintf("speed = %d\r\n",gps_now.speed);
+	DbgPrintf("stars = %d\r\n",gps_now.number);
+	
+	DbgFuncExit();
+}

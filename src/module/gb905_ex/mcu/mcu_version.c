@@ -18,7 +18,7 @@
 #include	"common.h"
 
 #include	"module/gb905_ex/mcu/mcu_common.h"
-
+#include	"module/gb905_ex/mcu/mcu_version.h"
 
 #define		DEBUG_Y
 #include	"libs/debug.h"
@@ -39,7 +39,7 @@ typedef  struct
 	unsigned char end_magic_id;
 } __packed mcu_protocol_version_t;
 
-void stm32_send_version_req(void)
+void mcu_send_version_req(void)
 {
 	mcu_protocol_version_t version;
 

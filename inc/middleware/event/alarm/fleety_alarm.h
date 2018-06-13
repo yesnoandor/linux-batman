@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 void fleety_alarm_treat(int alarm);
-
+void fleety_clr_alarm_after_report_ack(void);
 
 #ifdef __cplusplus
 }
